@@ -16,12 +16,12 @@ pub fn new_run_id() -> String {
     let pid = std::process::id();
 
     let mut bytes = [0_u8; 16];
-    for (i, chunk) in bytes.chunks_exact_mut(8).enumerate() {
+    for (i, chunk) in bytes.as_chunks_mut::<8>().0.iter_mut().enumerate() {
         let mut hasher = RandomState::new().build_hasher();
         hasher.write_u128(nanos);
         hasher.write_u32(pid);
         hasher.write_usize(i);
-        chunk.copy_from_slice(&hasher.finish().to_le_bytes());
+        *chunk = hasher.finish().to_le_bytes();
     }
     bytes[6] = (bytes[6] & 0x0F) | 0x40; // versión 4
     bytes[8] = (bytes[8] & 0x3F) | 0x80; // variante RFC 4122
