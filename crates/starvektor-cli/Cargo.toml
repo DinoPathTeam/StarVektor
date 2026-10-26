@@ -1,0 +1,29 @@
+[package]
+name = "starvektor-cli"
+description = "Raíz de composición: conecta las capas y expone el ejecutable `starvektor`"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+name = "starvektor_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "starvektor"
+path = "src/main.rs"
+
+[dependencies]
+sv-types.workspace = true
+sv-core.workspace = true
+sv-telemetry.workspace = true
+sv-config.workspace = true
+sv-gfx.workspace = true
+sv-platform.workspace = true
+sv-inference.workspace = true
+sv-tui.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+
+[lints]
+workspace = true

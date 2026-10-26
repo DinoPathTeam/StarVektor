@@ -1,0 +1,11 @@
+/target
+*.log
+*.jsonl
+!**/tests/fixtures/*.jsonl
+
+# Datasets y capturas nunca van al repositorio (ver docs/data-policy.md)
+/dataset/
+/captures/
+*.exr
+*.png
+*.mp4

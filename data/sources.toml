@@ -1,0 +1,44 @@
+# Fuentes de datos permitidas para StarVektor (hito H0.3).
+#
+# Regla: una secuencia que no tenga entrada aquí no entra a ningún dataset.
+# La política completa está en docs/data-policy.md y la comprueba
+# scripts/check_sources.py (también en CI).
+#
+# Cada entrada [[source]] declara:
+#   id          identificador único y estable
+#   kind        own_scene | open_dataset | permitted_game
+#   use         lista con "train" y/o "eval"
+#   license     licencia (SPDX si existe) o "propia"
+#   origin      de dónde sale (repositorio, URL, motor y versión)
+#   added       fecha de alta, AAAA-MM-DD
+#   frame_generation  debe ser "off": la entrada se captura sin generación de fotogramas
+#   permission  solo para permitted_game: enlace o referencia al permiso explícito
+#   game        solo para permitted_game: nombre del juego
+#
+# Ejemplo (descomentar y completar al añadir la primera escena propia):
+#
+# [[source]]
+# id = "godot-escena-exploracion-01"
+# kind = "own_scene"
+# use = ["train", "eval"]
+# license = "propia"
+# origin = "escena propia en Godot 4.x, generada para StarVektor"
+# added = "2026-10-26"
+# frame_generation = "off"
+
+schema = 1
+
+# Juegos comerciales: se usan para medir calidad y costo, nunca para entrenar.
+# Pendiente: revisar el EULA de cada uno antes de capturar nada.
+[evaluation_only]
+games = [
+  "Control",
+  "Cyberpunk 2077",
+  "The Witcher 3 (versión 2026)",
+  "Crimson Desert",
+]
+
+# Generadores de fotogramas existentes: solo referencia de comparación, nunca
+# objetivo de entrenamiento.
+[reference_only]
+systems = ["FSR 3", "AFMF 2", "DLSS FG", "OptiScaler FG"]

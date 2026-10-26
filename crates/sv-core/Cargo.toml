@@ -1,0 +1,12 @@
+[package]
+name = "sv-core"
+description = "Núcleo agnóstico: predictor de tiempos, regulador de niveles y detección de la cadena"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+sv-types.workspace = true
+
+[lints]
+workspace = true

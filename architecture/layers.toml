@@ -1,0 +1,57 @@
+# Reglas de dependencias entre crates. Lo verifica `scripts/check_layers.py`.
+#
+# `allow`: crates del workspace que este crate puede usar (en dependencies,
+#          dev-dependencies o build-dependencies). Todo lo demás está prohibido.
+# `external`: crates de terceros permitidos. Si un crate no aparece en
+#          [external], sus dependencias externas no se restringen.
+#
+# Para añadir una dependencia nueva hay que editar este archivo en el mismo
+# cambio: así la decisión queda a la vista en la revisión.
+
+[crates.sv-types]
+layer = "contratos"
+allow = []
+
+[crates.sv-core]
+layer = "núcleo"
+allow = ["sv-types"]
+
+[crates.sv-telemetry]
+layer = "núcleo"
+allow = ["sv-types"]
+
+[crates.sv-config]
+layer = "núcleo"
+allow = ["sv-types"]
+
+[crates.sv-inference]
+layer = "backend"
+allow = ["sv-types"]
+
+[crates.sv-gfx]
+layer = "backend"
+allow = ["sv-types"]
+
+[crates.sv-platform]
+layer = "plataforma"
+allow = ["sv-types"]
+
+[crates.sv-tui]
+layer = "interfaz"
+allow = ["sv-config", "sv-types"]
+
+# Raíz de composición: el único lugar donde se conectan todas las capas.
+[crates.starvektor-cli]
+layer = "composición"
+allow = ["*"]
+
+[external]
+# El núcleo no depende de nada externo: sin sistema operativo, sin gráficos.
+sv-types = ["serde"]
+sv-core = []
+sv-gfx = []
+sv-platform = []
+sv-inference = []
+sv-telemetry = ["serde", "serde_json"]
+sv-config = ["serde", "toml", "thiserror"]
+sv-tui = ["ratatui"]

@@ -1,0 +1,12 @@
+[package]
+name = "sv-platform"
+description = "Contrato de la capa de plataforma (captura, presentación, entrada) y una plataforma sintética"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+sv-types.workspace = true
+
+[lints]
+workspace = true

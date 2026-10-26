@@ -1,0 +1,40 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+# Las versiones viven aquí; cada crate declara solo lo que usa (`workspace = true`).
+# Qué crate puede depender de cuál lo fija `architecture/layers.toml` y lo verifica
+# `scripts/check_layers.py` (también en CI).
+[workspace.dependencies]
+sv-types = { path = "crates/sv-types" }
+sv-core = { path = "crates/sv-core" }
+sv-telemetry = { path = "crates/sv-telemetry" }
+sv-config = { path = "crates/sv-config" }
+sv-gfx = { path = "crates/sv-gfx" }
+sv-platform = { path = "crates/sv-platform" }
+sv-inference = { path = "crates/sv-inference" }
+sv-tui = { path = "crates/sv-tui" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "1"
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+ratatui = "0.30"
+
+[workspace.lints.rust]
+# Por defecto nada es `unsafe`. Los crates de FFI (shim C++, capa Vulkan) que lo
+# necesiten lo declararán en su propio Cargo.toml, y eso se verá en la revisión.
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

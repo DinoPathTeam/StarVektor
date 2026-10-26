@@ -1,0 +1,66 @@
+# Configuración de StarVektor: ejemplo comentado.
+#
+# Los valores activos son los valores por defecto (una prueba lo comprueba), así
+# que copiar este archivo tal cual equivale a no tener configuración.
+#
+# Ruta habitual: ~/.config/starvektor/config.toml (`starvektor config path`).
+# Se edita a mano o con `starvektor tui`. Al guardar desde la TUI se reescribe el
+# archivo y los comentarios no se conservan.
+#
+# Variables de entorno que sobrescriben el archivo (por ejemplo en la opción de
+# lanzamiento de Steam: `STARVEKTOR_MAX_LEVEL=1 %command%`):
+#   STARVEKTOR_ENABLED         1/0, true/false, on/off
+#   STARVEKTOR_MAX_LEVEL       0 a 3
+#   STARVEKTOR_HOOK            auto, vulkan, gamescope
+#   STARVEKTOR_BUDGET_FRACTION número en (0, 0.5]
+#   STARVEKTOR_CONFIG          ruta alternativa del archivo
+
+config_version = 1
+
+[general]
+# Interruptor general. Apagado, StarVektor deja pasar todo.
+enabled = true
+
+[regulator]
+# Tope del regulador: 0 apagado, 1 clásico, 2 red mínima, 3 red completa.
+max_level = 3
+# Fracción del tiempo base del juego que StarVektor puede gastar por fotograma.
+budget_fraction = 0.12
+# Si la VRAM libre baja de este valor (MB), el regulador baja de nivel.
+vram_floor_mb = 400
+# VRAM libre extra (MB) sobre el mínimo que hace falta para subir de nivel.
+vram_margin_mb = 200
+# Para subir, el costo debe ser como mucho esta fracción del presupuesto.
+up_margin = 0.6
+# Fotogramas malos seguidos antes de bajar de nivel.
+panic_frames = 3
+# Fotogramas buenos seguidos antes de subir de nivel.
+settle_frames = 120
+# Multiplicador máximo de espera tras bajadas forzadas.
+max_backoff = 8
+
+[hook]
+# auto, vulkan o gamescope. "auto" elegirá según la medición de la fase 1.
+mode = "auto"
+
+[telemetry]
+# Escribe un log JSONL por ejecución (sin imágenes ni datos del juego).
+enabled = true
+# Directorio de logs. Si falta: ~/.local/state/starvektor/logs
+# dir = "/ruta/a/logs"
+# Muestra frame time, nivel activo y la tecla de marca.
+overlay = false
+# Tecla que registra un user_mark ("aquí vi un artefacto").
+mark_key = "F9"
+
+# Perfiles por juego: el nombre debe coincidir exactamente. Lo que no se indica
+# hereda lo global. Ejemplos:
+#
+# [profiles.Valorant]
+# enabled = false
+#
+# [profiles.Control]
+# max_level = 2
+# budget_fraction = 0.10
+# hook = "gamescope"
+[profiles]
