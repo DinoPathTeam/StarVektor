@@ -3,7 +3,7 @@
 //! El hilo del fotograma solo encola el registro (`try_send`, sin bloquearse);
 //! otro hilo lo serializa y lo escribe. Si la cola se llena, el registro se
 //! descarta y se cuenta: el log nunca debe frenar el juego (ver presupuesto
-//! de tiempo en el documento maestro).
+//! de tiempo en docs/design.md).
 
 use std::fs::{self, File};
 use std::io::{self, BufWriter, Write};

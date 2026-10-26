@@ -17,6 +17,9 @@ Documentación y comentarios en español; identificadores de código en inglés.
 - Política D4: entrenar solo con escenas propias; juegos comerciales solo para evaluar; FSR/AFMF/DLSS FG solo como referencia de comparación. Toda fuente se declara en `data/sources.toml`.
 - El log es JSONL versionado (`docs/log-schema.md`). Cambiar el esquema exige actualizar `sv-telemetry/tests/fixtures` y respetar las reglas de versión.
 
+## Documentación pública
+README, `docs/design.md`, `docs/roadmap.md` y `docs/data-policy.md` son de lectura pública. Al cerrar un hito, marcarlo en `docs/roadmap.md` solo con evidencia (medición o prueba), y no presentar estimaciones como resultados.
+
 ## Antes de dar algo por terminado
 Ejecutar los seis comandos de verificación del README. No afirmar rendimiento a partir de `selftest`: es sintético.
 

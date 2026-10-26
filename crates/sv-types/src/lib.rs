@@ -8,7 +8,7 @@ use core::fmt;
 
 use serde::{Deserialize, Serialize};
 
-/// Nivel del regulador (ver D5 y la tabla de niveles del documento maestro).
+/// Nivel del regulador (ver D5 y la tabla de niveles de docs/design.md).
 ///
 /// En el log y en la configuración se escribe como entero (0 a 3).
 #[derive(
