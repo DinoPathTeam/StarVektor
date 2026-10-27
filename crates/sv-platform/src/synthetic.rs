@@ -1,23 +1,23 @@
-//! Plataforma sintética: genera un juego ficticio con tiempos de fotograma
-//! controlados. Es determinista (misma semilla, misma secuencia).
+//! Synthetic platform: generates a fictitious game with controlled frame
+//! times. It is deterministic (same seed, same sequence).
 
 use sv_types::{FrameHandle, Resolution};
 
 use crate::{CapturedFrame, Platform, PlatformError, PresentRequest};
 
-/// Parámetros del juego ficticio.
+/// Parameters of the fictitious game.
 #[derive(Debug, Clone)]
 pub struct SyntheticConfig {
-    /// Tiempo medio de fotograma del "juego", en ms.
+    /// Mean frame time of the "game", in ms.
     pub base_frame_ms: f64,
-    /// Variación máxima alrededor de la media (±), en ms.
+    /// Maximum variation around the mean (±), in ms.
     pub jitter_ms: f64,
     pub refresh_hz: f64,
-    /// Cuántos fotogramas entrega antes de terminar.
+    /// How many frames it delivers before finishing.
     pub frames: u64,
     pub resolution: Resolution,
     pub seed: u64,
-    /// Índices de fotograma en los que "el usuario pulsa la tecla de marca".
+    /// Frame indices at which "the user presses the mark key".
     pub marks_at: Vec<u64>,
 }
 
@@ -95,16 +95,16 @@ impl Platform for SyntheticPlatform {
     }
 }
 
-/// Generador pseudoaleatorio mínimo (xorshift64*), suficiente para pruebas.
+/// Minimal pseudo-random generator (xorshift64*), enough for tests.
 struct XorShift64(u64);
 
 impl XorShift64 {
     fn new(seed: u64) -> Self {
-        // El estado no puede ser cero.
+        // The state cannot be zero.
         Self(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1)
     }
 
-    /// Número en [0, 1).
+    /// Number in [0, 1).
     fn next_unit(&mut self) -> f64 {
         self.0 ^= self.0 >> 12;
         self.0 ^= self.0 << 25;
@@ -171,7 +171,7 @@ mod tests {
                 .all(|d| (17.0 - 1e-9..=23.0 + 1e-9).contains(d))
         );
         let mean = deltas.iter().sum::<f64>() / deltas.len() as f64;
-        assert!((mean - 20.0).abs() < 0.2, "media = {mean}");
+        assert!((mean - 20.0).abs() < 0.2, "mean = {mean}");
     }
 
     #[test]
@@ -196,7 +196,7 @@ mod tests {
             if p.poll_user_mark() {
                 marked.push(frame.index);
             }
-            assert!(!p.poll_user_mark(), "la marca se consume");
+            assert!(!p.poll_user_mark(), "the mark is consumed");
         }
         assert_eq!(marked, [3]);
     }

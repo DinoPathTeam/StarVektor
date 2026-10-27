@@ -1,9 +1,11 @@
 [package]
 name = "sv-platform"
-description = "Contrato de la capa de plataforma (captura, presentación, entrada) y una plataforma sintética"
+description = "Platform layer contract (capture, presentation, input) and a synthetic platform"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

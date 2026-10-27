@@ -1,13 +1,13 @@
-//! Raíz de composición de StarVektor.
+//! StarVektor composition root.
 //!
-//! Es el único crate que conoce a todos los demás. Aquí no hay lógica propia:
-//! se convierten los tipos de una capa a los de otra y se conectan las piezas.
-//! Cada comando vive en su archivo bajo [`commands`], así añadir o cambiar uno
-//! no toca a los demás.
+//! It is the only crate that knows all the others. It has no logic of its own:
+//! it converts the types of one layer to those of another and connects the pieces.
+//! Each command lives in its own file under [`commands`], so adding or changing one
+//! does not touch the others.
 //!
-//! - [`wiring`]: traducción entre capas (configuración -> parámetros del núcleo).
-//! - [`ids`]: identificadores de ejecución.
-//! - [`commands`]: `tui`, `config`, `log` y `selftest`.
+//! - [`wiring`]: translation between layers (configuration -> core parameters).
+//! - [`ids`]: run identifiers.
+//! - [`commands`]: `tui`, `config`, `log` and `selftest`.
 
 pub mod cli;
 pub mod commands;

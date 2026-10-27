@@ -1,4 +1,4 @@
-//! Cálculo del registro `summary` a partir de los registros `frame`.
+//! Computation of the `summary` record from the `frame` records.
 
 use std::collections::BTreeMap;
 
@@ -6,7 +6,7 @@ use sv_types::FrameKind;
 
 use crate::schema::{FrameRecord, SummaryRecord};
 
-/// Acumula fotogramas y produce el resumen de la escena.
+/// Accumulates frames and produces the scene summary.
 #[derive(Debug, Default)]
 pub struct SummaryBuilder {
     frames: u64,
@@ -24,7 +24,7 @@ impl SummaryBuilder {
         Self::default()
     }
 
-    /// Incorpora un fotograma presentado, en orden.
+    /// Adds a presented frame, in order.
     pub fn push(&mut self, frame: &FrameRecord) {
         match self.first_present_ms {
             None => self.first_present_ms = Some(frame.t_present_ms),
@@ -41,16 +41,16 @@ impl SummaryBuilder {
         self.level_counts[usize::from(u8::from(frame.level))] += 1;
     }
 
-    /// Fotogramas acumulados hasta ahora.
+    /// Frames accumulated so far.
     #[must_use]
     pub fn frames(&self) -> u64 {
         self.frames
     }
 
-    /// Cierra el resumen. `None` si no hubo fotogramas.
+    /// Closes the summary. `None` if there were no frames.
     ///
-    /// `latency_est_ms` lo aporta quien lo estime (no sale de los fotogramas);
-    /// `None` si no hay estimación.
+    /// `latency_est_ms` is supplied by whoever estimates it (it does not come from
+    /// the frames); `None` if there is no estimate.
     #[must_use]
     pub fn finish(mut self, latency_est_ms: Option<f64>) -> Option<SummaryRecord> {
         let first = self.first_present_ms?;
@@ -84,7 +84,7 @@ impl SummaryBuilder {
     }
 }
 
-/// Percentil por rango más cercano sobre datos ya ordenados. 0 si no hay datos.
+/// Nearest-rank percentile over already sorted data. 0 if there is no data.
 fn percentile(sorted: &[f64], q: f64) -> f64 {
     if sorted.is_empty() {
         return 0.0;
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn percentiles_pick_the_slow_tail() {
-        // 1000 intervalos de 1 a 1000 ms.
+        // 1000 intervals from 1 to 1000 ms.
         let mut b = SummaryBuilder::new();
         let mut t = 0.0;
         b.push(&fixtures::frame(0, t));
@@ -150,7 +150,7 @@ mod tests {
         }
         let s = b.finish(None).unwrap();
         assert!((s.fps_presented_avg - 100.0).abs() < 1e-6);
-        // 101 renderizados en 2 s: (101 - 1) / 2 = 50 fps.
+        // 101 rendered in 2 s: (101 - 1) / 2 = 50 fps.
         assert!(
             (s.fps_rendered_avg - 50.0).abs() < 1e-6,
             "{}",

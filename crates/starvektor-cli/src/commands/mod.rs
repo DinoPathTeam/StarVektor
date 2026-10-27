@@ -1,4 +1,4 @@
-//! Comandos del ejecutable. Cada uno vive en su archivo y no depende de los demás.
+//! Executable commands. Each lives in its own file and does not depend on the others.
 
 use std::error::Error;
 use std::path::{Path, PathBuf};
@@ -13,13 +13,13 @@ pub mod logs;
 pub mod selftest;
 pub mod tui;
 
-/// Resultado de un comando: código de salida o error a mostrar.
+/// Result of a command: exit code or error to display.
 pub type CommandResult = Result<ExitCode, Box<dyn Error>>;
 
-/// Ejecuta el comando pedido.
+/// Runs the requested command.
 ///
 /// # Errors
-/// El error del comando, listo para mostrar al usuario.
+/// The command's error, ready to show to the user.
 pub fn dispatch(cli: Cli) -> CommandResult {
     let config = cli.config.as_deref();
     match cli.command {
@@ -30,12 +30,12 @@ pub fn dispatch(cli: Cli) -> CommandResult {
     }
 }
 
-/// Ruta del archivo de configuración: la indicada, o la que resuelve el entorno.
+/// Path of the configuration file: the one given, or the one the environment resolves.
 pub(crate) fn config_path(explicit: Option<&Path>) -> Result<PathBuf, Box<dyn Error>> {
     match explicit {
         Some(path) => Ok(path.to_path_buf()),
         None => default_config_path(&process_env).ok_or_else(|| {
-            "no se pudo determinar la ruta de la configuración: usa --config o define HOME".into()
+            "could not determine the configuration path: use --config or set HOME".into()
         }),
     }
 }

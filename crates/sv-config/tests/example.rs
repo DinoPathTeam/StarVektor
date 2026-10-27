@@ -1,7 +1,7 @@
-//! `config/example.toml` no puede quedar desactualizado.
+//! `config/example.toml` cannot be allowed to go out of date.
 //!
-//! Sus valores activos deben ser los valores por defecto. Si se cambia un valor
-//! por defecto o se añade un campo, esta prueba obliga a actualizar el ejemplo.
+//! Its active values must be the defaults. If a default value is changed
+//! or a field is added, this test forces the example to be updated.
 
 use sv_config::Config;
 
@@ -21,7 +21,7 @@ fn the_example_documents_every_setting() {
         };
         assert!(
             EXAMPLE.contains(key.trim()),
-            "el ejemplo no menciona el ajuste `{}`",
+            "the example does not mention the setting `{}`",
             key.trim()
         );
     }

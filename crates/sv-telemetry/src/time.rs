@@ -1,8 +1,8 @@
-//! Marcas de tiempo ISO 8601 en UTC, sin dependencias externas.
+//! ISO 8601 timestamps in UTC, with no external dependencies.
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Fecha y hora actuales como `YYYY-MM-DDTHH:MM:SSZ`.
+/// Current date and time as `YYYY-MM-DDTHH:MM:SSZ`.
 #[must_use]
 pub fn utc_now_iso8601() -> String {
     let secs = SystemTime::now()
@@ -11,14 +11,14 @@ pub fn utc_now_iso8601() -> String {
     format_unix_seconds(secs)
 }
 
-/// Formatea segundos desde la época Unix como `YYYY-MM-DDTHH:MM:SSZ`.
+/// Formats seconds since the Unix epoch as `YYYY-MM-DDTHH:MM:SSZ`.
 #[must_use]
 pub fn format_unix_seconds(secs: u64) -> String {
     let days = i64::try_from(secs / 86_400).unwrap_or(i64::MAX / 2);
     let rem = secs % 86_400;
     let (hour, minute, second) = (rem / 3600, (rem % 3600) / 60, rem % 60);
 
-    // Días desde 1970-01-01 a fecha civil (algoritmo de Howard Hinnant).
+    // Days since 1970-01-01 to civil date (Howard Hinnant's algorithm).
     let z = days + 719_468;
     let era = z.div_euclid(146_097);
     let doe = z.rem_euclid(146_097);

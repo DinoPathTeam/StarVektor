@@ -1,17 +1,17 @@
-//! Validador de logs (hito H0.2).
+//! Log validator (milestone H0.2).
 //!
-//! Comprueba la estructura de un archivo JSONL contra el esquema: el tipo de
-//! cada campo (lo hace `serde`), el orden de los registros y rangos básicos.
-//! No juzga si las medidas son buenas: solo si el archivo es legible y coherente.
+//! Checks the structure of a JSONL file against the schema: the type of
+//! each field (done by `serde`), the order of records and basic ranges.
+//! It does not judge whether the measurements are good: only whether the file is readable and consistent.
 
 use std::io::BufRead;
 
 use crate::schema::{FrameRecord, Line, Record, RunRecord, SUPPORTED_MAJOR, SummaryRecord};
 
-/// Cuántos problemas se acumulan antes de dejar de revisar.
+/// How many problems accumulate before checking stops.
 const MAX_ISSUES: usize = 50;
 
-/// Un problema encontrado, con su número de línea (empieza en 1).
+/// A problem found, with its line number (starting at 1).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationIssue {
     pub line: usize,
@@ -20,24 +20,24 @@ pub struct ValidationIssue {
 
 impl std::fmt::Display for ValidationIssue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "línea {}: {}", self.line, self.message)
+        write!(f, "line {}: {}", self.line, self.message)
     }
 }
 
-/// Resumen de un log válido.
+/// Summary of a valid log.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationReport {
-    /// Registros leídos.
+    /// Records read.
     pub records: usize,
     pub frames: u64,
     pub events: u64,
     pub has_summary: bool,
 }
 
-/// Valida un log completo.
+/// Validates a complete log.
 ///
 /// # Errors
-/// Devuelve la lista de problemas (como máximo 50) si el archivo no cumple.
+/// Returns the list of problems (at most 50) if the file does not comply.
 pub fn validate<R: BufRead>(reader: R) -> Result<ValidationReport, Vec<ValidationIssue>> {
     let mut state = State::default();
 
@@ -51,13 +51,13 @@ pub fn validate<R: BufRead>(reader: R) -> Result<ValidationReport, Vec<Validatio
             }
         }
         if state.issues.len() >= MAX_ISSUES {
-            state.issue(line_no, "demasiados problemas; se deja de revisar".into());
+            state.issue(line_no, "too many problems; stopping the check".into());
             break;
         }
     }
 
     if state.records == 0 && state.issues.is_empty() {
-        state.issue(1, "el archivo está vacío".into());
+        state.issue(1, "the file is empty".into());
     }
 
     if state.issues.is_empty() {
@@ -90,13 +90,13 @@ impl State {
 
     fn check_line(&mut self, line_no: usize, text: &str) {
         if text.trim().is_empty() {
-            self.issue(line_no, "línea vacía".into());
+            self.issue(line_no, "empty line".into());
             return;
         }
         let line: Line = match serde_json::from_str(text) {
             Ok(line) => line,
             Err(err) => {
-                self.issue(line_no, format!("registro inválido: {err}"));
+                self.issue(line_no, format!("invalid record: {err}"));
                 return;
             }
         };
@@ -106,20 +106,20 @@ impl State {
             self.issue(
                 line_no,
                 format!(
-                    "versión de esquema no soportada: {} (se lee {SUPPORTED_MAJOR}.x)",
+                    "unsupported schema version: {} (reads {SUPPORTED_MAJOR}.x)",
                     line.schema
                 ),
             );
         }
         if self.has_summary {
-            self.issue(line_no, "hay registros después de summary".into());
+            self.issue(line_no, "there are records after summary".into());
         }
 
         let is_run = matches!(line.record, Record::Run(_));
         if self.records == 1 && !is_run {
-            self.issue(line_no, "el primer registro debe ser de tipo run".into());
+            self.issue(line_no, "the first record must be of type run".into());
         } else if self.records > 1 && is_run {
-            self.issue(line_no, "run repetido".into());
+            self.issue(line_no, "duplicate run".into());
         }
 
         match &line.record {
@@ -135,16 +135,16 @@ impl State {
 
     fn check_run(&mut self, line_no: usize, run: &RunRecord) {
         if run.run_id.trim().is_empty() {
-            self.issue(line_no, "run_id vacío".into());
+            self.issue(line_no, "empty run_id".into());
         }
         if !looks_like_iso8601_utc(&run.started_at) {
             self.issue(
                 line_no,
-                format!("started_at no es ISO 8601 UTC: {}", run.started_at),
+                format!("started_at is not ISO 8601 UTC: {}", run.started_at),
             );
         }
         if run.resolution.width() == 0 || run.resolution.height() == 0 {
-            self.issue(line_no, "resolution con dimensión cero".into());
+            self.issue(line_no, "resolution with a zero dimension".into());
         }
     }
 
@@ -153,18 +153,18 @@ impl State {
         if let Some(prev) = self.last_n.filter(|prev| f.n <= *prev) {
             self.issue(
                 line_no,
-                format!("n no es creciente: {} después de {prev}", f.n),
+                format!("n is not increasing: {} after {prev}", f.n),
             );
         }
         self.last_n = Some(f.n);
 
         if !f.t_render_ms.is_finite() || !f.t_present_ms.is_finite() {
-            self.issue(line_no, "marca de tiempo no finita".into());
+            self.issue(line_no, "non-finite timestamp".into());
         } else if let Some(prev) = self.last_present_ms.filter(|prev| f.t_present_ms < *prev) {
             self.issue(
                 line_no,
                 format!(
-                    "t_present_ms retrocede: {} después de {prev}",
+                    "t_present_ms goes backwards: {} after {prev}",
                     f.t_present_ms
                 ),
             );
@@ -181,19 +181,19 @@ impl State {
             f.pass_ms.present,
         ];
         if passes.iter().any(|ms| !ms.is_finite() || *ms < 0.0) {
-            self.issue(line_no, "pass_ms con valores negativos o no finitos".into());
+            self.issue(line_no, "pass_ms with negative or non-finite values".into());
         }
         if !(0.0..=100.0).contains(&f.repeat_pct) {
             self.issue(
                 line_no,
-                format!("repeat_pct fuera de 0 a 100: {}", f.repeat_pct),
+                format!("repeat_pct outside 0 to 100: {}", f.repeat_pct),
             );
         }
         if f.ssim.is_some_and(|v| !(0.0..=1.0).contains(&v)) {
-            self.issue(line_no, "ssim fuera de 0 a 1".into());
+            self.issue(line_no, "ssim outside 0 to 1".into());
         }
         if f.psnr.is_some_and(|v| !v.is_finite() || v < 0.0) {
-            self.issue(line_no, "psnr negativo o no finito".into());
+            self.issue(line_no, "negative or non-finite psnr".into());
         }
     }
 
@@ -207,22 +207,19 @@ impl State {
             s.overhead_ms_avg,
         ];
         if values.iter().any(|v| !v.is_finite() || *v < 0.0) {
-            self.issue(line_no, "summary con valores negativos o no finitos".into());
+            self.issue(line_no, "summary with negative or non-finite values".into());
         }
         if let Some(key) = s
             .level_time_pct
             .keys()
             .find(|k| !matches!(k.as_str(), "0" | "1" | "2" | "3"))
         {
-            self.issue(
-                line_no,
-                format!("level_time_pct con clave desconocida: {key}"),
-            );
+            self.issue(line_no, format!("level_time_pct with unknown key: {key}"));
         }
     }
 }
 
-/// Comprobación de forma `YYYY-MM-DDTHH:MM:SSZ` (no valida el calendario).
+/// Shape check `YYYY-MM-DDTHH:MM:SSZ` (does not validate the calendar).
 fn looks_like_iso8601_utc(text: &str) -> bool {
     let b = text.as_bytes();
     b.len() == 20
@@ -303,55 +300,55 @@ mod tests {
 
     #[test]
     fn rejects_an_empty_file() {
-        assert_issue("", "vacío");
+        assert_issue("", "empty");
     }
 
     #[test]
     fn rejects_garbage_with_the_line_number() {
         let mut text = to_text(valid_log());
-        text.push_str("esto no es json\n");
-        assert_issue(&text, "línea 6: registro inválido");
+        text.push_str("this is not json\n");
+        assert_issue(&text, "line 6: invalid record");
     }
 
     #[test]
     fn run_must_come_first() {
         let mut log = valid_log();
         log.swap(0, 1);
-        assert_issue(&to_text(log), "primer registro debe ser de tipo run");
+        assert_issue(&to_text(log), "first record must be of type run");
     }
 
     #[test]
     fn run_cannot_repeat() {
         let mut log = valid_log();
         log.insert(2, Record::Run(Box::new(fixtures::run())));
-        assert_issue(&to_text(log), "run repetido");
+        assert_issue(&to_text(log), "duplicate run");
     }
 
     #[test]
     fn nothing_after_summary() {
         let mut log = valid_log();
         log.push(Record::Frame(fixtures::frame(2, 33.0)));
-        assert_issue(&to_text(log), "después de summary");
+        assert_issue(&to_text(log), "after summary");
     }
 
     #[test]
     fn frame_numbers_must_increase() {
         let mut log = valid_log();
         log[3] = Record::Frame(fixtures::frame(0, 16.7));
-        assert_issue(&to_text(log), "n no es creciente");
+        assert_issue(&to_text(log), "n is not increasing");
     }
 
     #[test]
     fn presentation_time_cannot_go_back() {
         let mut log = valid_log();
         log[3] = Record::Frame(fixtures::frame(1, -5.0));
-        assert_issue(&to_text(log), "retrocede");
+        assert_issue(&to_text(log), "goes backwards");
     }
 
     #[test]
     fn rejects_an_unsupported_major_version() {
         let text = to_text(valid_log()).replacen("\"schema\":\"1.0\"", "\"schema\":\"2.0\"", 1);
-        assert_issue(&text, "versión de esquema no soportada: 2.0");
+        assert_issue(&text, "unsupported schema version: 2.0");
     }
 
     #[test]
@@ -363,7 +360,7 @@ mod tests {
     #[test]
     fn rejects_an_invalid_level() {
         let text = to_text(valid_log()).replacen("\"level\":1", "\"level\":7", 1);
-        assert_issue(&text, "nivel inválido");
+        assert_issue(&text, "invalid level");
     }
 
     #[test]
@@ -396,14 +393,14 @@ mod tests {
         summary.level_time_pct.insert("9".into(), 1.0);
         let mut log = valid_log();
         log[4] = Record::Summary(summary);
-        assert_issue(&to_text(log), "clave desconocida");
+        assert_issue(&to_text(log), "unknown key");
     }
 
     #[test]
     fn rejects_blank_lines() {
         let mut text = to_text(valid_log());
         text.push('\n');
-        assert_issue(&text, "línea vacía");
+        assert_issue(&text, "empty line");
     }
 
     #[test]
@@ -411,6 +408,6 @@ mod tests {
         let text = "basura\n".repeat(500);
         let found = issues(&text);
         assert!(found.len() <= MAX_ISSUES + 1, "{}", found.len());
-        assert!(found.last().unwrap().contains("demasiados"));
+        assert!(found.last().unwrap().contains("too many"));
     }
 }

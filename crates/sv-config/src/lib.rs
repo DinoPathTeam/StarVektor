@@ -1,18 +1,18 @@
-//! Configuración de StarVektor (decisión D3).
+//! StarVektor configuration (decision D3).
 //!
-//! Todo lo configurable vive en un archivo TOML y en variables de entorno; la
-//! TUI (`sv-tui`) solo lo edita. Así funciona igual desde una opción de
-//! lanzamiento de Steam o un script, sin abrir nada.
+//! Everything configurable lives in a TOML file and in environment variables; the
+//! TUI (`sv-tui`) only edits it. This way it works the same from a Steam launch
+//! option or a script, without opening anything.
 //!
-//! Este crate no conoce `sv-core`: el modelo es datos planos y la conversión a
-//! los tipos del núcleo se hace en el crate de composición. Por eso se puede
-//! cambiar el regulador sin tocar la configuración, y al revés.
+//! This crate does not know `sv-core`: the model is plain data and the conversion to
+//! the core types is done in the composition crate. That is why the regulator can
+//! change without touching the configuration, and vice versa.
 //!
-//! - [`model`]: estructuras y valores por defecto.
-//! - [`effective`]: resolución de perfil por juego.
-//! - [`validate`]: reglas de rango.
-//! - [`env`]: sobrescrituras desde variables de entorno.
-//! - [`io`]: carga, guardado atómico y rutas por defecto.
+//! - [`model`]: structures and default values.
+//! - [`effective`]: per-game profile resolution.
+//! - [`validate`]: range rules.
+//! - [`env`]: overrides from environment variables.
+//! - [`io`]: loading, atomic saving and default paths.
 
 pub mod effective;
 pub mod env;

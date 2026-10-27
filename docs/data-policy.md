@@ -1,36 +1,36 @@
-# Política de datos
+# Data policy
 
-StarVektor aprende de **resultados y de fotogramas de fuentes permitidas**; nunca guarda contenido, código ni binarios de juegos o SDK. No guardar no basta: los términos de uso pueden prohibir el acto de capturar y entrenar, así que **la fuente se decide antes de capturar**.
+StarVektor learns from **results and from frames from permitted sources**; it never stores content, code or binaries from games or SDKs. Not storing is not enough: terms of use may forbid the act of capturing and training, so **the source is decided before capturing**.
 
-## Categorías
+## Categories
 
-| Categoría | Qué entra | Uso |
+| Category | What goes in | Use |
 |---|---|---|
-| Permitida | Escenas propias renderizadas en motor abierto (Godot, Blender); datasets públicos con licencia abierta; juegos con permiso explícito | Entrenamiento y evaluación |
-| Solo evaluación | Juegos comerciales (Control, Cyberpunk 2077, The Witcher 3 versión 2026, Crimson Desert) | Comparar calidad y costo; nunca entrenar |
-| Referencia de comparación | Salidas de FSR 3, AFMF 2, DLSS FG y FG de OptiScaler | Medir si StarVektor lo hace mejor o peor; nunca como objetivo de entrenamiento |
-| Prohibida | Código o binarios de SDK, assets extraídos de juegos, juegos cuyo EULA prohíba capturar o entrenar, capturas hechas con FG activo como entrada | Nunca |
+| Permitted | Our own scenes rendered in an open engine (Godot, Blender); public datasets with an open license; games with explicit permission | Training and evaluation |
+| Evaluation only | Commercial games (Control, Cyberpunk 2077, The Witcher 3 2026 version, Crimson Desert) | Compare quality and cost; never train |
+| Comparison reference | Output of FSR 3, AFMF 2, DLSS FG and OptiScaler FG | Measure whether StarVektor does better or worse; never as a training target |
+| Forbidden | SDK code or binaries, assets extracted from games, games whose EULA forbids capturing or training, captures made with FG active as input | Never |
 
-Antes de capturar un juego comercial se revisa su EULA.
+A commercial game's EULA is reviewed before capturing it.
 
-## Reglas del pipeline
+## Pipeline rules
 
-1. La verdad de entrenamiento es el fotograma real a 120-240 fps (se descartan los intermedios), nunca la salida de un generador existente.
-2. Cada secuencia lleva registro de procedencia: origen, versión, licencia o permiso, fecha, quién la capturó y hash del archivo.
-3. La lista de fuentes está versionada en este repositorio (`data/sources.toml`); una secuencia sin entrada no entra al dataset.
-4. Antes de publicar un modelo se hace una prueba de memorización: con entradas parecidas, no debe reproducir escenas de entrenamiento.
-5. Los logs de telemetría no contienen imágenes ni datos del juego; el dataset de capturas es aparte y opcional.
-6. El primer prototipo se entrena solo con escenas propias; los juegos comerciales se reservan para evaluar.
-7. Ningún modelo se entrena ni se ajusta con imágenes de juegos de terceros, tampoco en el equipo del usuario (no hay aprendizaje en línea sobre lo que se juega).
-8. De los juegos comerciales no se guarda ningún fotograma: la imagen se procesa en memoria, se descarta y solo se conservan métricas numéricas.
-9. La evaluación se limita a juegos de un solo jugador sin conexión. Estado de cada editor en [publisher-review.md](publisher-review.md).
+1. Training ground truth is the real frame at 120-240 fps (intermediate frames are discarded), never the output of an existing generator.
+2. Every sequence carries a provenance record: origin, version, license or permission, date, who captured it and the file hash.
+3. The list of sources is versioned in this repository (`data/sources.toml`); a sequence without an entry does not enter the dataset.
+4. Before publishing a model, a memorization test is run: given similar inputs, it must not reproduce training scenes.
+5. Telemetry logs contain no images or game data; the capture dataset is separate and optional.
+6. The first prototype is trained only on our own scenes; commercial games are reserved for evaluation.
+7. No model is trained or fine-tuned on images from third-party games, not even on the user's machine (there is no online learning on what is being played).
+8. No frame from commercial games is stored: the image is processed in memory, discarded, and only numerical metrics are kept.
+9. Evaluation is limited to single-player, offline games. Status of each publisher in [publisher-review.md](publisher-review.md).
 
-## Verificación automática
+## Automatic verification
 
-`scripts/check_sources.py` (también en CI) comprueba que cada fuente declare id, tipo, uso, licencia, origen, fecha y `frame_generation = "off"`; que los juegos con permiso lo indiquen; y que ningún juego de solo evaluación ni generador de referencia figure como entrenamiento.
+`scripts/check_sources.py` (also in CI) checks that each source declares id, kind, use, license, origin, date and `frame_generation = "off"`; that games with permission state it; and that no evaluation-only game or reference generator appears as training.
 
-**Límite:** el script no puede detectar un juego comercial declarado como otra cosa. Eso lo cubre la revisión humana al añadir cada fuente.
+**Limit:** the script cannot detect a commercial game declared as something else. That is covered by human review when each source is added.
 
-## Aportar datos
+## Contributing data
 
-Si quieres aportar escenas, abre una propuesta indicando origen y licencia. Solo se aceptan fuentes que cumplan esta política.
+If you want to contribute scenes, open a proposal stating origin and license. Only sources that comply with this policy are accepted.

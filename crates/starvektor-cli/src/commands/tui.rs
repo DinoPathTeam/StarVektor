@@ -1,4 +1,4 @@
-//! `starvektor tui`: abre la TUI de configuración.
+//! `starvektor tui`: opens the configuration TUI.
 
 use std::io::{IsTerminal, stdin, stdout};
 use std::path::Path;
@@ -10,10 +10,10 @@ use super::{CommandResult, config_path};
 
 pub fn run(explicit: Option<&Path>) -> CommandResult {
     if !stdin().is_terminal() || !stdout().is_terminal() {
-        return Err("la TUI necesita un terminal interactivo; para editar sin ella usa `starvektor config path` y el archivo TOML".into());
+        return Err("the TUI needs an interactive terminal; to edit without it, use `starvektor config path` and the TOML file".into());
     }
     let path = config_path(explicit)?;
-    // Se edita el archivo tal cual: las variables de entorno no se mezclan aquí.
+    // The file is edited as is: environment variables are not mixed in here.
     let config = Config::load_or_default(&path)?;
     sv_tui::run(config, path)?;
     Ok(ExitCode::SUCCESS)

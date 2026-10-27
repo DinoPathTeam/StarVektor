@@ -1,16 +1,17 @@
-//! Núcleo agnóstico de StarVektor.
+//! Agnostic core of StarVektor.
 //!
-//! Aquí no hay llamadas al sistema operativo ni a la API gráfica: todo lo que
-//! entra son números y todo lo que sale son decisiones. Eso lo hace probable
-//! sin hardware y portable a cualquier sistema (ver `docs/architecture.md`).
+//! There are no operating system or graphics API calls here: everything that
+//! comes in is numbers and everything that goes out is decisions. That makes it
+//! testable without hardware and portable to any system (see
+//! `docs/architecture.md`).
 //!
-//! Cada módulo es independiente de los demás:
-//! - [`timing`]: predicción del tiempo de fotograma.
-//! - [`regulator`]: sube y baja el nivel según costo y memoria (con histéresis).
-//! - [`chain`]: detecta si la cadena trae upscaling o generación de fotogramas.
+//! Each module is independent of the others:
+//! - [`timing`]: frame-time prediction.
+//! - [`regulator`]: raises and lowers the level based on cost and memory (with hysteresis).
+//! - [`chain`]: detects whether the chain includes upscaling or frame generation.
 //!
-//! La máscara de confianza y la estimación de movimiento (fase 2) tendrán su
-//! propio módulo; no se tocará ninguno de los anteriores para añadirlos.
+//! The confidence mask and motion estimation (Phase 2) will get their own
+//! module; none of the above will be touched to add them.
 
 pub mod chain;
 pub mod regulator;

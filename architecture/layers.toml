@@ -1,27 +1,27 @@
-# Reglas de dependencias entre crates. Lo verifica `scripts/check_layers.py`.
+# Dependency rules between crates. Checked by `scripts/check_layers.py`.
 #
-# `allow`: crates del workspace que este crate puede usar (en dependencies,
-#          dev-dependencies o build-dependencies). Todo lo demás está prohibido.
-# `external`: crates de terceros permitidos. Si un crate no aparece en
-#          [external], sus dependencias externas no se restringen.
+# `allow`: workspace crates this crate may use (in dependencies,
+#          dev-dependencies or build-dependencies). Everything else is forbidden.
+# `external`: allowed third-party crates. If a crate does not appear in
+#          [external], its external dependencies are not restricted.
 #
-# Para añadir una dependencia nueva hay que editar este archivo en el mismo
-# cambio: así la decisión queda a la vista en la revisión.
+# To add a new dependency, edit this file in the same change, so the decision
+# is visible in review.
 
 [crates.sv-types]
-layer = "contratos"
+layer = "contracts"
 allow = []
 
 [crates.sv-core]
-layer = "núcleo"
+layer = "core"
 allow = ["sv-types"]
 
 [crates.sv-telemetry]
-layer = "núcleo"
+layer = "core"
 allow = ["sv-types"]
 
 [crates.sv-config]
-layer = "núcleo"
+layer = "core"
 allow = ["sv-types"]
 
 [crates.sv-inference]
@@ -33,20 +33,20 @@ layer = "backend"
 allow = ["sv-types"]
 
 [crates.sv-platform]
-layer = "plataforma"
+layer = "platform"
 allow = ["sv-types"]
 
 [crates.sv-tui]
-layer = "interfaz"
+layer = "interface"
 allow = ["sv-config", "sv-types"]
 
-# Raíz de composición: el único lugar donde se conectan todas las capas.
+# Composition root: the only place where all layers are connected.
 [crates.starvektor-cli]
-layer = "composición"
+layer = "composition"
 allow = ["*"]
 
 [external]
-# El núcleo no depende de nada externo: sin sistema operativo, sin gráficos.
+# The core depends on nothing external: no operating system, no graphics.
 sv-types = ["serde"]
 sv-core = []
 sv-gfx = []

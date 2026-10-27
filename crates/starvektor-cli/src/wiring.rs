@@ -1,15 +1,15 @@
-//! Traducción entre capas.
+//! Translation between layers.
 //!
-//! `sv-config` y `sv-core` no se conocen. Esta es la única costura: si cambia
-//! uno de los dos, solo hay que revisar este archivo.
+//! `sv-config` and `sv-core` do not know each other. This is the only seam: if one
+//! of the two changes, only this file needs review.
 
 use sv_config::{Config, Effective};
 use sv_core::regulator::RegulatorConfig;
 use sv_types::Level;
 
-/// Parámetros del regulador para un juego, a partir de la configuración.
+/// Regulator parameters for a game, from the configuration.
 ///
-/// Si StarVektor está desactivado para ese juego, el tope es nivel 0.
+/// If StarVektor is disabled for that game, the cap is level 0.
 #[must_use]
 pub fn regulator_config(config: &Config, effective: &Effective) -> RegulatorConfig {
     let r = &config.regulator;
@@ -42,7 +42,7 @@ mod tests {
         config.regulator.vram_floor_mb = 512;
         config.regulator.settle_frames = 30;
         config.regulator.panic_frames = 5;
-        let effective = config.effective("juego");
+        let effective = config.effective("game");
         let rc = regulator_config(&config, &effective);
         assert_eq!(rc.vram_floor_mb, 512);
         assert_eq!(rc.settle_frames, 30);

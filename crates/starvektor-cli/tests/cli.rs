@@ -1,4 +1,4 @@
-//! Pruebas del ejecutable real (`starvektor`), de punta a punta.
+//! End-to-end tests of the real executable (`starvektor`).
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 static COUNTER: AtomicU32 = AtomicU32::new(0);
 
-/// Directorio temporal propio de cada prueba.
+/// Temporary directory of its own for each test.
 struct Sandbox {
     dir: PathBuf,
 }
@@ -24,8 +24,8 @@ impl Sandbox {
         self.dir.join(name)
     }
 
-    /// Ejecuta `starvektor` aislado: sin terminal y con un HOME propio, para
-    /// no tocar la configuración real ni heredar variables STARVEKTOR_*.
+    /// Runs `starvektor` isolated: without a terminal and with its own HOME, so
+    /// it neither touches the real configuration nor inherits STARVEKTOR_* variables.
     fn run(&self, args: &[&str]) -> Output {
         self.run_with_env(args, &[])
     }
@@ -73,7 +73,7 @@ fn selftest_writes_a_log_that_validates() {
     assert!(out.status.success(), "{}", text(&out.stderr));
     let stdout = text(&out.stdout);
     assert!(stdout.contains("selftest ok"), "{stdout}");
-    assert!(stdout.contains("nivel 0 -> 1 (needed)"), "{stdout}");
+    assert!(stdout.contains("level 0 -> 1 (needed)"), "{stdout}");
 
     let validated = sb.run(&["log", "validate", s(&log)]);
     assert!(validated.status.success(), "{}", text(&validated.stderr));
@@ -109,13 +109,13 @@ fn validate_rejects_a_corrupted_log_with_line_numbers() {
         .lines()
         .map(str::to_owned)
         .collect();
-    lines[3] = "{esto no es json".to_owned();
+    lines[3] = "{this is not json".to_owned();
     fs::write(&log, lines.join("\n") + "\n").unwrap();
 
     let out = sb.run(&["log", "validate", s(&log)]);
     assert_eq!(out.status.code(), Some(1));
     assert!(
-        text(&out.stderr).contains("línea 4"),
+        text(&out.stderr).contains("line 4"),
         "{}",
         text(&out.stderr)
     );
@@ -124,10 +124,10 @@ fn validate_rejects_a_corrupted_log_with_line_numbers() {
 #[test]
 fn validate_reports_a_missing_file_as_an_error() {
     let sb = Sandbox::new("missing");
-    let out = sb.run(&["log", "validate", s(&sb.path("nada.jsonl"))]);
+    let out = sb.run(&["log", "validate", s(&sb.path("nothing.jsonl"))]);
     assert!(!out.status.success());
     assert!(
-        text(&out.stderr).contains("no se pudo abrir"),
+        text(&out.stderr).contains("could not open"),
         "{}",
         text(&out.stderr)
     );
@@ -235,7 +235,7 @@ fn tui_refuses_to_run_without_a_terminal() {
     let out = sb.run(&["tui"]);
     assert!(!out.status.success());
     assert!(
-        text(&out.stderr).contains("terminal interactivo"),
+        text(&out.stderr).contains("interactive terminal"),
         "{}",
         text(&out.stderr)
     );

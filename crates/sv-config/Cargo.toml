@@ -1,9 +1,11 @@
 [package]
 name = "sv-config"
-description = "Configuración de StarVektor: modelo TOML, perfiles por juego, variables de entorno y validación"
+description = "StarVektor configuration: TOML model, per-game profiles, environment variables and validation"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

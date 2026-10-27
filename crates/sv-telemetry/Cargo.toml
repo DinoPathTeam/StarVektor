@@ -1,9 +1,11 @@
 [package]
 name = "sv-telemetry"
-description = "Esquema versionado del log JSONL, escritor asíncrono, resumen por escena y validador"
+description = "Versioned JSONL log schema, asynchronous writer, per-scene summary and validator"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

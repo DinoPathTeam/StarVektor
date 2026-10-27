@@ -1,33 +1,36 @@
-# StarVektor: guía para sesiones de Claude
+# StarVektor: guide for Claude sessions
 
-Dependencia del sistema (sin GUI, con TUI de configuración) que imita VRR. Regla suprema: **nunca empeorar la imagen**; ante duda, el regulador baja de nivel.
+System dependency (no GUI, with a configuration TUI) that imitates VRR. Supreme rule: **never make the image worse**; when in doubt, the regulator drops a level.
 
-## Idioma
-Documentación y comentarios en español; identificadores de código en inglés.
+## Language
+All documentation, code comments, user-facing strings and commit messages are written in **English**, so that anyone who opens the repository can read it. Code identifiers are in English too. (Conversation with the maintainers may happen in another language; the repository does not.) New documents and edits follow this from now on.
 
-## Arquitectura (ver docs/architecture.md)
-- Un crate por responsabilidad. Capas: `sv-types` → núcleo (`sv-core`, `sv-telemetry`, `sv-config`) → backends (`sv-gfx`, `sv-inference`) → `sv-platform` → `sv-tui` → `starvektor-cli`.
-- Las dependencias permitidas están en `architecture/layers.toml`; `scripts/check_layers.py` las verifica. Si necesitas una dependencia nueva, edita ese archivo a propósito, no para silenciar el error.
-- `sv-core` no depende de nada externo ni de `sv-config`. La traducción config → núcleo vive solo en `starvektor-cli/src/wiring.rs`.
-- Un cambio debe tocar un crate. Si toca varios, revisa si falta una abstracción.
-- `unsafe_code = "forbid"` en todo el workspace. FFI (shim C++, capa Vulkan) irá en crates aparte que lo permitan explícitamente.
-- Rust es el núcleo; C++ solo como shim acotado si hace falta. Decisión Vulkan vs gamescope pendiente de la medición de la Fase 1.
+## Identity
+The project is published and credited as **DinoPathTeam** (GitHub organization). Authorship, package metadata and the copyright holder refer to DinoPathTeam.
 
-## Datos
-- Política D4: entrenar solo con escenas propias; juegos comerciales solo para evaluar; FSR/AFMF/DLSS FG solo como referencia de comparación. Toda fuente se declara en `data/sources.toml`.
-- El log es JSONL versionado (`docs/log-schema.md`). Cambiar el esquema exige actualizar `sv-telemetry/tests/fixtures` y respetar las reglas de versión.
+## Architecture (see docs/architecture.md)
+- One crate per responsibility. Layers: `sv-types` → core (`sv-core`, `sv-telemetry`, `sv-config`) → backends (`sv-gfx`, `sv-inference`) → `sv-platform` → `sv-tui` → `starvektor-cli`.
+- Allowed dependencies are in `architecture/layers.toml`; `scripts/check_layers.py` verifies them. If you need a new dependency, edit that file deliberately, not to silence the error.
+- `sv-core` depends on nothing external and not on `sv-config`. The config → core translation lives only in `starvektor-cli/src/wiring.rs`.
+- A change should touch one crate. If it touches several, check whether an abstraction is missing.
+- `unsafe_code = "forbid"` across the workspace. FFI (C++ shim, Vulkan layer) will go in separate crates that explicitly allow it.
+- Rust is the core; C++ only as a narrow shim if needed. Vulkan vs gamescope is pending the Phase 1 measurement.
 
-## Documentación pública
-README, `docs/design.md`, `docs/roadmap.md` y `docs/data-policy.md` son de lectura pública. Al cerrar un hito, marcarlo en `docs/roadmap.md` solo con evidencia (medición o prueba), y no presentar estimaciones como resultados.
+## Data
+- Policy D4: train only on our own scenes; commercial games for evaluation only; FSR/AFMF/DLSS FG only as comparison references. Every source is declared in `data/sources.toml`.
+- The log is versioned JSONL (`docs/log-schema.md`). Changing the schema requires updating `sv-telemetry/tests/fixtures` and following the versioning rules.
 
-## Límites legales (docs/usage-statement.md)
-Caja negra: no leer ni escribir memoria del juego, no tocar sus archivos ni su red, no extraer assets, no guardar fotogramas de juegos comerciales, no interferir con DRM ni anticheat, y no entrenar ni ajustar modelos con imágenes de juegos de terceros (tampoco en el equipo del usuario: sin aprendizaje en línea sobre lo que se juega). Solo juegos de un jugador sin conexión; apagado por defecto en juegos con anticheat. Cualquier cambio que toque esto requiere actualizar la declaración y `docs/publisher-review.md` primero.
+## Public documentation
+README, `docs/design.md`, `docs/roadmap.md` and `docs/data-policy.md` are for public reading. When closing a milestone, tick it in `docs/roadmap.md` only with evidence (measurement or test), and do not present estimates as results. The repository states that it is at an early stage and that any copy of the code is incomplete; keep that notice.
 
-## Antes de dar algo por terminado
-Ejecutar los seis comandos de verificación del README. No afirmar rendimiento a partir de `selftest`: es sintético.
+## Legal limits (docs/usage-statement.md)
+Black box: do not read or write game memory, do not touch its files or network, do not extract assets, do not store frames from commercial games, do not interfere with DRM or anti-cheat, and do not train or fine-tune models on images from third-party games (not even on the user's machine: no online learning on what is being played). Single-player, offline games only; off by default in games with anti-cheat. Any change that touches this requires updating the statement and `docs/publisher-review.md` first.
 
-## Cambios frecuentes
-- Ajuste nuevo: `sv-config` (modelo, validación, env) + `config/example.toml` (una prueba lo exige) + `wiring.rs` + campo en `sv-tui` si se edita ahí.
-- Campo de log nuevo: `sv-telemetry/src/schema.rs`, validador, `docs/log-schema.md`, versión menor.
-- Backend nuevo: implementar el trait en su crate; registrar en `wiring.rs`.
-- Comando nuevo: archivo en `starvektor-cli/src/commands/` + variante en `cli.rs`.
+## Before declaring something done
+Run the six verification commands from the README. Do not claim performance from `selftest`: it is synthetic.
+
+## Frequent changes
+- New setting: `sv-config` (model, validation, env) + `config/example.toml` (a test enforces it) + `wiring.rs` + a field in `sv-tui` if it is edited there.
+- New log field: `sv-telemetry/src/schema.rs`, validator, `docs/log-schema.md`, minor version.
+- New backend: implement the trait in its crate; register in `wiring.rs`.
+- New command: file in `starvektor-cli/src/commands/` + variant in `cli.rs`.

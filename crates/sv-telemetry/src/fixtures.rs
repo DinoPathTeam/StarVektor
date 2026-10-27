@@ -1,4 +1,4 @@
-//! Datos de ejemplo compartidos por las pruebas de este crate.
+//! Example data shared by this crate's tests.
 
 use std::collections::BTreeMap;
 
@@ -10,9 +10,9 @@ pub fn run() -> RunRecord {
     RunRecord {
         run_id: "00000000-0000-4000-8000-000000000001".into(),
         started_at: "2026-10-26T17:00:00Z".into(),
-        game: "juego-de-prueba".into(),
+        game: "test-game".into(),
         game_version: "1.0".into(),
-        scene: "exploracion".into(),
+        scene: "exploration".into(),
         gpu: "RX 9060 XT".into(),
         driver: "mesa".into(),
         mesa: Some("26.0".into()),

@@ -1,88 +1,88 @@
-# Hoja de ruta
+# Roadmap
 
-Siete fases en orden. No se pasa a la siguiente sin cumplir el criterio de salida. La regla que cruza todas: **StarVektor nunca debe dejar la imagen peor que no hacer nada.** Las decisiones de fondo están en [design.md](design.md).
+Seven phases, in order. We do not move to the next one without meeting the exit criterion. The rule that cuts across all of them: **StarVektor must never leave the image worse than doing nothing.** The underlying decisions are in [design.md](design.md).
 
-Estado actual: **Fase 0 completada**; la Fase 1 es la siguiente.
+Current status: **Phase 0 complete**; Phase 1 is next.
 
-## Fase 0. Cimientos (completada)
+## Phase 0. Foundations (complete)
 
-Objetivo: repositorio, capas, esquema del log, política de datos y TUI esqueleto con archivo TOML.
+Goal: repository, layers, log schema, data policy and a skeleton TUI backed by a TOML file.
 
-- [x] H0.1 Repositorio con capas separadas, compilando.
-- [x] H0.2 Esquema del log versionado (`run`, `frame`, `event`, `summary`) y validador.
-- [x] H0.3 Política de datos y lista de fuentes versionada, con verificación automática.
-- [x] H0.4 TUI esqueleto que edita y guarda el archivo TOML.
+- [x] H0.1 Repository with separate layers, compiling.
+- [x] H0.2 Versioned log schema (`run`, `frame`, `event`, `summary`) and validator.
+- [x] H0.3 Data policy and versioned list of sources, with automatic verification.
+- [x] H0.4 Skeleton TUI that edits and saves the TOML file.
 
-**Salida:** un `run` válido escrito y verificado contra el esquema; la TUI edita y guarda la configuración. Se comprueba con `starvektor selftest`, que usa datos sintéticos.
+**Exit:** a valid `run` is written and checked against the schema; the TUI edits and saves the configuration. Checked with `starvektor selftest`, which uses synthetic data.
 
-## Fase 1. Línea base y prueba de enganche
+## Phase 1. Baseline and hook test
 
-Objetivo: medir sin generar nada y decidir cómo engancharse en Linux.
+Goal: measure without generating anything and decide how to hook in on Linux.
 
-- [ ] H1.1 Medición sin generar nada: frame times, fps renderizados frente a presentados, VRAM.
-- [ ] H1.2 Detección de la configuración de OptiScaler (solo escalado, FG, ambos).
-- [ ] H1.3 Tres escenas fijas por juego de evaluación.
-- [ ] H1.4 Prueba A: capa Vulkan implícita. Overhead, percentiles 1 % y 0.1 %, latencia, datos del motor disponibles, compatibilidad y huella (si corre en el proceso del juego y a qué datos accede).
-- [ ] H1.5 Prueba B: gamescope, con las mismas métricas, incluida la huella.
-- [ ] H1.6 Decisión D2 registrada con las cifras que la sustentan.
-- [ ] H1.7 Lista de exclusión de juegos con anticheat: StarVektor apagado por defecto en ellos (D9).
+- [ ] H1.1 Measurement without generating anything: frame times, rendered vs. presented fps, VRAM.
+- [ ] H1.2 Detection of the OptiScaler configuration (upscaling only, FG, both).
+- [ ] H1.3 Three fixed scenes per evaluation game.
+- [ ] H1.4 Test A: implicit Vulkan layer. Overhead, 1 % and 0.1 % percentiles, latency, available engine data, compatibility and footprint (whether it runs inside the game process and what data it accesses).
+- [ ] H1.5 Test B: gamescope, with the same metrics, including footprint.
+- [ ] H1.6 Decision D2 recorded with the figures that support it.
+- [ ] H1.7 Exclusion list of games with anti-cheat: StarVektor off by default in them (D9).
 
-**Salida:** repetir la misma escena da resultados comparables (tolerancia a definir con los datos) y D2 queda decidida.
+**Exit:** repeating the same scene gives comparable results (tolerance to be defined from the data) and D2 is decided.
 
-## Fase 2. Núcleo clásico (nivel 1)
+## Phase 2. Classic core (level 1)
 
-Objetivo: generación de fotogramas sin red.
+Goal: frame generation without a neural network.
 
-- [ ] H2.1 Predictor de tiempos de fotograma.
-- [ ] H2.2 Estimación de movimiento clásica y reproyección.
-- [ ] H2.3 Protección del HUD por reglas y máscara de confianza heurística.
-- [ ] H2.4 Regulador con histéresis y vigilancia de VRAM.
-- [ ] H2.5 Modo «no intervenir» (nivel 0) probado.
+- [ ] H2.1 Frame-time predictor.
+- [ ] H2.2 Classic motion estimation and reprojection.
+- [ ] H2.3 Rule-based HUD protection and heuristic confidence mask.
+- [ ] H2.4 Regulator with hysteresis and VRAM monitoring.
+- [ ] H2.5 "Do not intervene" mode (level 0) tested.
 
-**Salida:** costo dentro del presupuesto, percentil 1 % no peor que nativo y, como máximo, un fotograma de latencia añadida.
+**Exit:** cost within budget, 1 % percentile no worse than native and at most one frame of added latency.
 
-_Nota: el predictor (H2.1) y el regulador (H2.4) ya existen como código y pruebas unitarias en `sv-core`, pero no se dan por cumplidos hasta medirlos con un juego real._
+_Note: the predictor (H2.1) and the regulator (H2.4) already exist as code and unit tests in `sv-core`, but they are not considered met until measured with a real game._
 
-## Fase 3. Datos y primer modelo (nivel 2)
+## Phase 3. Data and first model (level 2)
 
-Objetivo: dataset con procedencia y modelo v0 para máscara de errores y HUD.
+Goal: dataset with provenance and a v0 model for error masking and HUD.
 
-- [ ] H3.1 Escenas propias en motor abierto capturadas a 120-240 fps, con registro de procedencia.
-- [ ] H3.2 Dataset con los fotogramas descartados como verdad de entrenamiento.
-- [ ] H3.3 Modelo mínimo para máscara de errores y protección del HUD (modelo v0).
-- [ ] H3.4 Prueba de memorización superada.
-- [ ] H3.5 Evaluación en escenas retenidas (SSIM/PSNR más revisión visual de HUD y bordes).
+- [ ] H3.1 Our own scenes in an open engine captured at 120-240 fps, with a provenance record.
+- [ ] H3.2 Dataset using the discarded frames as training ground truth.
+- [ ] H3.3 Minimal model for error masking and HUD protection (model v0).
+- [ ] H3.4 Memorization test passed.
+- [ ] H3.5 Evaluation on held-out scenes (SSIM/PSNR plus visual review of HUD and edges).
 
-**Salida:** el modelo v0 mejora al nivel 1 y no memoriza escenas de entrenamiento.
+**Exit:** model v0 improves on level 1 and does not memorize training scenes.
 
-## Fase 4. Comparación
+## Phase 4. Comparison
 
-Objetivo: medir contra el estado del arte y decidir si seguir.
+Goal: measure against the state of the art and decide whether to continue.
 
-- [ ] H4.1 Medición de FSR 3, AFMF 2 y FG de OptiScaler en los juegos de evaluación.
-- [ ] H4.2 Tabla comparativa de calidad, latencia y ms, en las cuatro configuraciones por escena.
-- [ ] H4.3 Decisión explícita: seguir, cambiar de enfoque o recortar alcance.
+- [ ] H4.1 Measurement of FSR 3, AFMF 2 and OptiScaler FG on the evaluation games.
+- [ ] H4.2 Comparison table of quality, latency and ms, in the four configurations per scene.
+- [ ] H4.3 Explicit decision: continue, change approach or cut scope.
 
-**Salida:** decisión registrada en este repositorio, con los datos.
+**Exit:** decision recorded in this repository, with the data.
 
-## Fase 5. Red completa (nivel 3)
+## Phase 5. Full network (level 3)
 
-Objetivo: estimador de movimiento aprendido, relleno de zonas descubiertas, perfiles por juego y familia de modelos.
+Goal: learned motion estimator, filling of disoccluded regions, per-game profiles and a model family.
 
-- [ ] H5.1 Estimador de movimiento aprendido.
-- [ ] H5.2 Relleno de zonas descubiertas (inpainting).
-- [ ] H5.3 Perfiles por juego.
-- [ ] H5.4 Familia de modelos (grande, mediano, mínimo) por destilación.
-- [ ] H5.5 Selección automática de modelo por presupuesto de ms y VRAM.
+- [ ] H5.1 Learned motion estimator.
+- [ ] H5.2 Filling of disoccluded regions (inpainting).
+- [ ] H5.3 Per-game profiles.
+- [ ] H5.4 Model family (large, medium, minimal) by distillation.
+- [ ] H5.5 Automatic model selection by ms and VRAM budget.
 
-**Salida:** la selección automática funciona y respeta el tope de VRAM en una GPU de 8 GB.
+**Exit:** automatic selection works and respects the VRAM cap on an 8 GB GPU.
 
-## Fase 6. Portabilidad y hardware antiguo
+## Phase 6. Portability and older hardware
 
-Objetivo: capa de plataforma para Windows y degradación escalonada en GPUs sin aceleración de IA.
+Goal: platform layer for Windows and stepwise degradation on GPUs without AI acceleration.
 
-- [ ] H6.1 Capa de plataforma para Windows.
-- [ ] H6.2 Pruebas en GPUs antiguas (RX 580, GTX 1650) con degradación escalonada.
-- [ ] H6.3 Revisión de la decisión sobre GUI (D3).
+- [ ] H6.1 Platform layer for Windows.
+- [ ] H6.2 Tests on older GPUs (RX 580, GTX 1650) with stepwise degradation.
+- [ ] H6.3 Review of the GUI decision (D3).
 
-**Salida:** el mismo núcleo corre en ambos sistemas; en hardware sin aceleración de IA, nivel 1 o 2 sin empeorar la imagen.
+**Exit:** the same core runs on both systems; on hardware without AI acceleration, level 1 or 2 without making the image worse.

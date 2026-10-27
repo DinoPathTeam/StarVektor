@@ -1,4 +1,4 @@
-//! Definición de la línea de comandos. Solo describe; no ejecuta nada.
+//! Command-line definition. It only describes; it executes nothing.
 
 use std::path::PathBuf;
 
@@ -8,11 +8,11 @@ use clap::{Args, Parser, Subcommand};
 #[command(
     name = "starvektor",
     version,
-    about = "StarVektor: sincronización de fotogramas al estilo VRR"
+    about = "StarVektor: VRR-style frame pacing"
 )]
 pub struct Cli {
-    /// Archivo de configuración (por defecto, el de `config path`).
-    #[arg(long, global = true, value_name = "ARCHIVO")]
+    /// Configuration file (by default, the one from `config path`).
+    #[arg(long, global = true, value_name = "FILE")]
     pub config: Option<PathBuf>,
 
     #[command(subcommand)]
@@ -21,27 +21,27 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Abre la TUI para editar la configuración.
+    /// Opens the TUI to edit the configuration.
     Tui,
-    /// Consulta o crea el archivo de configuración.
+    /// Queries or creates the configuration file.
     #[command(subcommand)]
     Config(ConfigCommand),
-    /// Trabaja con logs de ejecución.
+    /// Works with run logs.
     #[command(subcommand)]
     Log(LogCommand),
-    /// Ejecuta el sistema contra un juego sintético y valida el log que produce.
+    /// Runs the system against a synthetic game and validates the log it produces.
     Selftest(SelftestArgs),
 }
 
 #[derive(Debug, Subcommand)]
 pub enum ConfigCommand {
-    /// Muestra la ruta del archivo de configuración.
+    /// Shows the path of the configuration file.
     Path,
-    /// Muestra la configuración vigente (archivo más variables de entorno).
+    /// Shows the effective configuration (file plus environment variables).
     Show,
-    /// Crea el archivo con los valores por defecto.
+    /// Creates the file with the default values.
     Init {
-        /// Sobrescribe el archivo si ya existe.
+        /// Overwrites the file if it already exists.
         #[arg(long)]
         force: bool,
     },
@@ -49,23 +49,23 @@ pub enum ConfigCommand {
 
 #[derive(Debug, Subcommand)]
 pub enum LogCommand {
-    /// Comprueba que un log JSONL cumple el esquema.
+    /// Checks that a JSONL log complies with the schema.
     Validate {
-        /// Archivo `.jsonl` a validar.
+        /// `.jsonl` file to validate.
         file: PathBuf,
     },
 }
 
 #[derive(Debug, Args)]
 pub struct SelftestArgs {
-    /// Fotogramas que entrega el juego sintético.
+    /// Frames delivered by the synthetic game.
     #[arg(long, default_value_t = 600)]
     pub frames: u64,
-    /// Semilla del juego sintético (misma semilla, misma secuencia).
+    /// Seed of the synthetic game (same seed, same sequence).
     #[arg(long, default_value_t = 1)]
     pub seed: u64,
-    /// Dónde escribir el log (por defecto, el directorio de logs).
-    #[arg(long, value_name = "ARCHIVO")]
+    /// Where to write the log (by default, the logs directory).
+    #[arg(long, value_name = "FILE")]
     pub out: Option<PathBuf>,
 }
 
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn rejects_unknown_commands() {
-        assert!(Cli::try_parse_from(["starvektor", "volar"]).is_err());
+        assert!(Cli::try_parse_from(["starvektor", "fly"]).is_err());
         assert!(Cli::try_parse_from(["starvektor"]).is_err());
     }
 }

@@ -1,15 +1,15 @@
-//! Telemetría de StarVektor: log JSONL versionado.
+//! StarVektor telemetry: versioned JSONL log.
 //!
-//! Un archivo por ejecución, una línea por registro. Nunca contiene imágenes ni
-//! datos del juego (ver `docs/data-policy.md`). El esquema se describe en
-//! `docs/log-schema.md`; la fuente de verdad es [`schema`].
+//! One file per run, one line per record. It never contains images or
+//! game data (see `docs/data-policy.md`). The schema is described in
+//! `docs/log-schema.md`; the source of truth is [`schema`].
 //!
-//! Módulos independientes entre sí, salvo que todos usan [`schema`]:
-//! - [`schema`]: tipos de los registros (`run`, `frame`, `event`, `summary`).
-//! - [`writer`]: escritura asíncrona, sin sumar milisegundos al fotograma.
-//! - [`summary`]: calcula el registro `summary` a partir de los `frame`.
-//! - [`validate`]: comprueba un log contra el esquema.
-//! - [`time`]: marcas de tiempo ISO 8601 sin dependencias externas.
+//! Modules are independent of each other, except that all use [`schema`]:
+//! - [`schema`]: record types (`run`, `frame`, `event`, `summary`).
+//! - [`writer`]: asynchronous writing, without adding milliseconds to the frame.
+//! - [`summary`]: computes the `summary` record from the `frame` records.
+//! - [`validate`]: checks a log against the schema.
+//! - [`time`]: ISO 8601 timestamps with no external dependencies.
 
 pub mod schema;
 pub mod summary;

@@ -1,9 +1,11 @@
 [package]
 name = "sv-types"
-description = "Contratos compartidos entre las capas de StarVektor (tipos pequeños y estables)"
+description = "Contracts shared between StarVektor layers (small, stable types)"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 serde.workspace = true

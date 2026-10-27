@@ -1,4 +1,4 @@
-//! `starvektor config`: ruta, contenido vigente y creación del archivo.
+//! `starvektor config`: path, effective content and file creation.
 
 use std::path::Path;
 use std::process::ExitCode;
@@ -21,13 +21,13 @@ pub fn run(command: ConfigCommand, explicit: Option<&Path>) -> CommandResult {
         ConfigCommand::Init { force } => {
             if path.exists() && !force {
                 return Err(format!(
-                    "{} ya existe; usa --force para sobrescribirlo",
+                    "{} already exists; use --force to overwrite it",
                     path.display()
                 )
                 .into());
             }
             Config::default().save(&path)?;
-            println!("configuración creada en {}", path.display());
+            println!("configuration created at {}", path.display());
         }
     }
     Ok(ExitCode::SUCCESS)

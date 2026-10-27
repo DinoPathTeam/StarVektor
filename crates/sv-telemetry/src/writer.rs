@@ -1,9 +1,9 @@
-//! Escritor asíncrono del log JSONL.
+//! Asynchronous JSONL log writer.
 //!
-//! El hilo del fotograma solo encola el registro (`try_send`, sin bloquearse);
-//! otro hilo lo serializa y lo escribe. Si la cola se llena, el registro se
-//! descarta y se cuenta: el log nunca debe frenar el juego (ver presupuesto
-//! de tiempo en docs/design.md).
+//! The frame thread only enqueues the record (`try_send`, without blocking);
+//! another thread serializes and writes it. If the queue fills up, the record is
+//! dropped and counted: the log must never slow the game down (see the time
+//! budget in docs/design.md).
 
 use std::fs::{self, File};
 use std::io::{self, BufWriter, Write};
@@ -15,16 +15,16 @@ use std::thread::{self, JoinHandle};
 
 use crate::schema::{Line, Record, RunRecord};
 
-/// Resultado de cerrar el log.
+/// Result of closing the log.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WriteStats {
-    /// Líneas escritas, incluida la de `run`.
+    /// Lines written, including the `run` one.
     pub written: u64,
-    /// Registros descartados por cola llena o escritor caído.
+    /// Records dropped because the queue was full or the writer was down.
     pub dropped: u64,
 }
 
-/// Escritor del log de una ejecución.
+/// Log writer for one run.
 pub struct LogWriter {
     tx: Option<SyncSender<Record>>,
     handle: Option<JoinHandle<io::Result<u64>>>,
@@ -32,11 +32,11 @@ pub struct LogWriter {
 }
 
 impl LogWriter {
-    /// Crea el archivo y escribe el registro `run` antes de volver, para que
-    /// sea siempre la primera línea. `capacity` es el tamaño de la cola.
+    /// Creates the file and writes the `run` record before returning, so that
+    /// it is always the first line. `capacity` is the queue size.
     ///
     /// # Errors
-    /// Si no se puede crear el directorio o el archivo, o escribir la cabecera.
+    /// If the directory or the file cannot be created, or the header cannot be written.
     pub fn create(path: &Path, run: RunRecord, capacity: usize) -> io::Result<Self> {
         if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
             fs::create_dir_all(parent)?;
@@ -65,7 +65,7 @@ impl LogWriter {
         })
     }
 
-    /// Encola un registro sin bloquear. `false` si se descartó.
+    /// Enqueues a record without blocking. `false` if it was dropped.
     pub fn log(&self, record: Record) -> bool {
         let sent = self
             .tx
@@ -77,22 +77,22 @@ impl LogWriter {
         sent
     }
 
-    /// Registros descartados hasta ahora.
+    /// Records dropped so far.
     #[must_use]
     pub fn dropped(&self) -> u64 {
         self.dropped.load(Ordering::Relaxed)
     }
 
-    /// Vacía la cola, cierra el archivo y devuelve las estadísticas.
+    /// Drains the queue, closes the file and returns the statistics.
     ///
     /// # Errors
-    /// Si el hilo de escritura falló al escribir o terminó con pánico.
+    /// If the writer thread failed while writing or panicked.
     pub fn finish(mut self) -> io::Result<WriteStats> {
         self.tx.take();
         let written = match self.handle.take() {
             Some(handle) => handle
                 .join()
-                .map_err(|_| io::Error::other("el hilo de log terminó con pánico"))??,
+                .map_err(|_| io::Error::other("the log thread panicked"))??,
             None => 0,
         };
         Ok(WriteStats {
@@ -104,7 +104,7 @@ impl LogWriter {
 
 impl Drop for LogWriter {
     fn drop(&mut self) {
-        // Si no se llamó a `finish`, se vacía la cola igualmente (mejor esfuerzo).
+        // If `finish` was not called, the queue is drained anyway (best effort).
         self.tx.take();
         if let Some(handle) = self.handle.take() {
             let _ = handle.join();

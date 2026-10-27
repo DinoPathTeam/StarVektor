@@ -1,9 +1,11 @@
 [package]
 name = "starvektor-cli"
-description = "Raíz de composición: conecta las capas y expone el ejecutable `starvektor`"
+description = "Composition root: connects the layers and exposes the `starvektor` executable"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [lib]
 name = "starvektor_cli"

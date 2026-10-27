@@ -1,60 +1,60 @@
-# Configuración de StarVektor: ejemplo comentado.
+# StarVektor configuration: commented example.
 #
-# Los valores activos son los valores por defecto (una prueba lo comprueba), así
-# que copiar este archivo tal cual equivale a no tener configuración.
+# The active values are the defaults (a test enforces this), so copying this
+# file as is is equivalent to having no configuration.
 #
-# Ruta habitual: ~/.config/starvektor/config.toml (`starvektor config path`).
-# Se edita a mano o con `starvektor tui`. Al guardar desde la TUI se reescribe el
-# archivo y los comentarios no se conservan.
+# Usual path: ~/.config/starvektor/config.toml (`starvektor config path`).
+# Edit it by hand or with `starvektor tui`. Saving from the TUI rewrites the
+# file and comments are not preserved.
 #
-# Variables de entorno que sobrescriben el archivo (por ejemplo en la opción de
-# lanzamiento de Steam: `STARVEKTOR_MAX_LEVEL=1 %command%`):
+# Environment variables that override the file (for example in Steam's launch
+# option: `STARVEKTOR_MAX_LEVEL=1 %command%`):
 #   STARVEKTOR_ENABLED         1/0, true/false, on/off
-#   STARVEKTOR_MAX_LEVEL       0 a 3
+#   STARVEKTOR_MAX_LEVEL       0 to 3
 #   STARVEKTOR_HOOK            auto, vulkan, gamescope
-#   STARVEKTOR_BUDGET_FRACTION número en (0, 0.5]
-#   STARVEKTOR_CONFIG          ruta alternativa del archivo
+#   STARVEKTOR_BUDGET_FRACTION number in (0, 0.5]
+#   STARVEKTOR_CONFIG          alternative file path
 
 config_version = 1
 
 [general]
-# Interruptor general. Apagado, StarVektor deja pasar todo.
+# Master switch. When off, StarVektor lets everything through.
 enabled = true
 
 [regulator]
-# Tope del regulador: 0 apagado, 1 clásico, 2 red mínima, 3 red completa.
+# Regulator cap: 0 off, 1 classic, 2 minimal network, 3 full network.
 max_level = 3
-# Fracción del tiempo base del juego que StarVektor puede gastar por fotograma.
+# Fraction of the game's base frame time that StarVektor may spend per frame.
 budget_fraction = 0.12
-# Si la VRAM libre baja de este valor (MB), el regulador baja de nivel.
+# If free VRAM drops below this value (MB), the regulator drops a level.
 vram_floor_mb = 400
-# VRAM libre extra (MB) sobre el mínimo que hace falta para subir de nivel.
+# Extra free VRAM (MB) above the minimum needed to go up a level.
 vram_margin_mb = 200
-# Para subir, el costo debe ser como mucho esta fracción del presupuesto.
+# To go up, the cost must be at most this fraction of the budget.
 up_margin = 0.6
-# Fotogramas malos seguidos antes de bajar de nivel.
+# Consecutive bad frames before dropping a level.
 panic_frames = 3
-# Fotogramas buenos seguidos antes de subir de nivel.
+# Consecutive good frames before going up a level.
 settle_frames = 120
-# Multiplicador máximo de espera tras bajadas forzadas.
+# Maximum wait multiplier after forced drops.
 max_backoff = 8
 
 [hook]
-# auto, vulkan o gamescope. "auto" elegirá según la medición de la fase 1.
+# auto, vulkan or gamescope. "auto" will choose based on the Phase 1 measurement.
 mode = "auto"
 
 [telemetry]
-# Escribe un log JSONL por ejecución (sin imágenes ni datos del juego).
+# Writes one JSONL log per run (no images or game data).
 enabled = true
-# Directorio de logs. Si falta: ~/.local/state/starvektor/logs
-# dir = "/ruta/a/logs"
-# Muestra frame time, nivel activo y la tecla de marca.
+# Log directory. If missing: ~/.local/state/starvektor/logs
+# dir = "/path/to/logs"
+# Shows frame time, active level and the mark key.
 overlay = false
-# Tecla que registra un user_mark ("aquí vi un artefacto").
+# Key that records a user_mark ("I saw an artifact here").
 mark_key = "F9"
 
-# Perfiles por juego: el nombre debe coincidir exactamente. Lo que no se indica
-# hereda lo global. Ejemplos:
+# Per-game profiles: the name must match exactly. Anything not set inherits the
+# global value. Examples:
 #
 # [profiles.Valorant]
 # enabled = false

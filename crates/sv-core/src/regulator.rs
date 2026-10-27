@@ -1,43 +1,43 @@
-//! Regulador de niveles (hito H2.4, versión inicial).
+//! Level regulator (milestone H2.4, initial version).
 //!
-//! Decide el nivel de StarVektor a partir de cuatro números por fotograma:
-//! el tiempo base del juego, el periodo de refresco del monitor, lo que cuesta
-//! StarVektor y la VRAM libre. No sabe nada de GPU, monitores ni ficheros.
+//! Decides StarVektor's level from four numbers per frame:
+//! the game's base frame time, the monitor's refresh period, what StarVektor
+//! costs and the free VRAM. It knows nothing about GPUs, monitors or files.
 //!
-//! Reglas:
-//! - **Bajar es rápido** (`panic_frames` muestras malas seguidas): si el costo
-//!   supera el presupuesto o la VRAM libre cae bajo el umbral.
-//! - **Subir es lento** (`settle_frames` muestras buenas seguidas): hace falta
-//!   holgura de sobra. La histéresis evita que oscile.
-//! - **Apagado si no hace falta**: si el juego ya iguala el refresco, nivel 0.
-//! - **Retroceso exponencial**: cada bajada forzada duplica la espera para
-//!   volver a subir (hasta `max_backoff`); así un nivel que no cabe no parpadea.
+//! Rules:
+//! - **Dropping is fast** (`panic_frames` consecutive bad samples): if the cost
+//!   exceeds the budget or the free VRAM falls below the threshold.
+//! - **Rising is slow** (`settle_frames` consecutive good samples): plenty of
+//!   headroom is required. Hysteresis keeps it from oscillating.
+//! - **Off if not needed**: if the game already matches the refresh rate, level 0.
+//! - **Exponential backoff**: each forced drop doubles the wait before
+//!   rising again (up to `max_backoff`); a level that does not fit does not flicker.
 //!
-//! Todos los umbrales son hipótesis iniciales (ver la hoja de prototipo): se
-//! ajustan con las mediciones de la fase 1.
+//! All thresholds are initial hypotheses (see the prototype sheet): they are
+//! tuned with the Phase 1 measurements.
 
 use sv_types::Level;
 
-/// Parámetros del regulador.
+/// Regulator parameters.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RegulatorConfig {
-    /// Nivel máximo permitido (tope puesto por el usuario o el perfil).
+    /// Maximum allowed level (cap set by the user or the profile).
     pub max_level: Level,
-    /// Fracción del tiempo base que StarVektor puede gastar (0.10 a 0.15).
+    /// Fraction of the base frame time StarVektor may spend (0.10 to 0.15).
     pub budget_fraction: f64,
-    /// VRAM libre mínima, en MB. Por debajo se baja de nivel.
+    /// Minimum free VRAM, in MB. Below it the level drops.
     pub vram_floor_mb: u32,
-    /// VRAM libre extra sobre el mínimo que hace falta para subir, en MB.
+    /// Extra free VRAM above the minimum needed to rise, in MB.
     pub vram_margin_mb: u32,
-    /// Para subir, el costo debe ser como mucho `budget * up_margin`.
+    /// To rise, the cost must be at most `budget * up_margin`.
     pub up_margin: f64,
-    /// Muestras malas seguidas antes de bajar.
+    /// Consecutive bad samples before dropping.
     pub panic_frames: u32,
-    /// Muestras buenas seguidas antes de subir.
+    /// Consecutive good samples before rising.
     pub settle_frames: u32,
-    /// Multiplicador máximo de la espera tras bajadas forzadas.
+    /// Maximum wait multiplier after forced drops.
     pub max_backoff: u32,
-    /// Tolerancia al comparar el tiempo base con el refresco.
+    /// Tolerance when comparing the base frame time with the refresh.
     pub refresh_tolerance: f64,
 }
 
@@ -57,38 +57,38 @@ impl Default for RegulatorConfig {
     }
 }
 
-/// Medidas de un fotograma.
+/// Measurements of one frame.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Sample {
-    /// Tiempo base del juego (sin StarVektor), en ms.
+    /// Game base frame time (without StarVektor), in ms.
     pub base_frame_ms: f64,
-    /// Periodo de refresco del monitor, en ms.
+    /// Monitor refresh period, in ms.
     pub refresh_ms: f64,
-    /// Costo de StarVektor en este fotograma, en ms (0 si está apagado).
+    /// StarVektor cost in this frame, in ms (0 if off).
     pub overhead_ms: f64,
-    /// VRAM libre, en MB.
+    /// Free VRAM, in MB.
     pub vram_free_mb: u32,
 }
 
-/// Motivo de un cambio de nivel.
+/// Reason for a level change.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Reason {
-    /// El costo superó el presupuesto.
+    /// The cost exceeded the budget.
     OverBudget,
-    /// La VRAM libre cayó bajo el umbral.
+    /// Free VRAM fell below the threshold.
     VramLow,
-    /// El juego ya iguala el refresco: no hace falta intervenir.
+    /// The game already matches the refresh rate: no need to intervene.
     NotNeeded,
-    /// El juego no llega al refresco: conviene intervenir.
+    /// The game does not reach the refresh rate: intervening is worthwhile.
     Needed,
-    /// Hay holgura de tiempo y de memoria para un nivel más alto.
+    /// There is time and memory headroom for a higher level.
     Headroom,
-    /// El nivel actual superaba el tope configurado.
+    /// The current level exceeded the configured cap.
     Capped,
 }
 
 impl Reason {
-    /// Texto estable para el log (`event.detail.reason`).
+    /// Stable text for the log (`event.detail.reason`).
     #[must_use]
     pub fn as_str(self) -> &'static str {
         match self {
@@ -102,7 +102,7 @@ impl Reason {
     }
 }
 
-/// Cambio de nivel decidido por el regulador.
+/// Level change decided by the regulator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Transition {
     pub from: Level,
@@ -110,7 +110,7 @@ pub struct Transition {
     pub reason: Reason,
 }
 
-/// Máquina de estados del regulador.
+/// Regulator state machine.
 #[derive(Debug, Clone)]
 pub struct Regulator {
     cfg: RegulatorConfig,
@@ -124,7 +124,7 @@ pub struct Regulator {
 }
 
 impl Regulator {
-    /// Empieza apagado (nivel 0): primero se comprueba que hace falta.
+    /// Starts off (level 0): first it checks whether it is needed.
     #[must_use]
     pub fn new(cfg: RegulatorConfig) -> Self {
         Self {
@@ -144,22 +144,22 @@ impl Regulator {
         self.level
     }
 
-    /// Multiplicador de espera vigente (1 = sin retroceso).
+    /// Current wait multiplier (1 = no backoff).
     #[must_use]
     pub fn backoff(&self) -> u32 {
         self.backoff
     }
 
-    /// Cambia los parámetros en caliente (por ejemplo, al cambiar de perfil).
+    /// Changes the parameters on the fly (for example, when switching profile).
     pub fn set_config(&mut self, cfg: RegulatorConfig) {
         self.cfg = cfg;
     }
 
-    /// Procesa un fotograma. Devuelve el cambio de nivel, si lo hay.
+    /// Processes a frame. Returns the level change, if any.
     pub fn observe(&mut self, s: &Sample) -> Option<Transition> {
         self.since_change = self.since_change.saturating_add(1);
 
-        // Una racha larga y estable en un nivel activo borra el retroceso.
+        // A long, stable streak at an active level clears the backoff.
         if self.level != Level::Off
             && self.backoff > 1
             && self.since_change >= u64::from(self.cfg.settle_frames) * 8
@@ -264,7 +264,7 @@ mod tests {
         }
     }
 
-    /// Juego a ~45 fps (necesita ayuda en un monitor de 60 Hz).
+    /// Game at ~45 fps (needs help on a 60 Hz monitor).
     fn slow(overhead_ms: f64, vram_free_mb: u32) -> Sample {
         Sample {
             base_frame_ms: 22.0,
@@ -274,7 +274,7 @@ mod tests {
         }
     }
 
-    /// Juego a 100 fps (no necesita ayuda en 60 Hz).
+    /// Game at 100 fps (needs no help at 60 Hz).
     fn fast(overhead_ms: f64) -> Sample {
         Sample {
             base_frame_ms: 10.0,
@@ -294,7 +294,7 @@ mod tests {
         last
     }
 
-    /// Alimenta fotogramas lentos hasta que pasa de apagado a nivel 1.
+    /// Feeds slow frames until it goes from off to level 1.
     fn wake(r: &mut Regulator) {
         for _ in 0..1000 {
             if let Some(t) = r.observe(&slow(0.0, 4000)) {
@@ -302,7 +302,7 @@ mod tests {
                 return;
             }
         }
-        panic!("el regulador no despertó");
+        panic!("the regulator did not wake up");
     }
 
     #[test]
@@ -338,7 +338,7 @@ mod tests {
     fn drops_fast_when_over_budget() {
         let mut r = Regulator::new(cfg());
         wake(&mut r);
-        // presupuesto = 22 * 0.12 = 2.64 ms
+        // budget = 22 * 0.12 = 2.64 ms
         assert_eq!(feed(&mut r, &slow(5.0, 4000), 2), None);
         let t = r.observe(&slow(5.0, 4000)).unwrap();
         assert_eq!(
@@ -392,7 +392,7 @@ mod tests {
         assert_eq!(
             feed(&mut r, &slow(1.0, 4000), 100),
             None,
-            "no pasa del tope"
+            "does not exceed the cap"
         );
         assert_eq!(r.level(), Level::MiniNet);
     }
@@ -401,7 +401,7 @@ mod tests {
     fn does_not_climb_without_enough_headroom() {
         let mut r = Regulator::new(cfg());
         wake(&mut r);
-        // Dentro del presupuesto (2.0 < 2.64) pero sin holgura (2.0 > 1.58).
+        // Within budget (2.0 < 2.64) but with no headroom (2.0 > 1.58).
         assert_eq!(feed(&mut r, &slow(2.0, 4000), 500), None);
         assert_eq!(r.level(), Level::Classic);
     }
@@ -420,24 +420,24 @@ mod tests {
                 reason: Reason::NotNeeded
             }
         );
-        assert_eq!(r.backoff(), 1, "apagarse por no hacer falta no castiga");
+        assert_eq!(
+            r.backoff(),
+            1,
+            "switching off because it is not needed is not punished"
+        );
     }
 
     #[test]
     fn backoff_doubles_the_wait_after_each_forced_drop() {
         let mut r = Regulator::new(cfg());
         wake(&mut r);
-        feed(&mut r, &slow(5.0, 4000), 3); // bajada forzada -> backoff 2
+        feed(&mut r, &slow(5.0, 4000), 3); // forced drop -> backoff 2
         assert_eq!(r.backoff(), 2);
-        assert_eq!(feed(&mut r, &slow(0.0, 4000), 9), None, "espera 5 * 2 = 10");
+        assert_eq!(feed(&mut r, &slow(0.0, 4000), 9), None, "wait 5 * 2 = 10");
         assert!(r.observe(&slow(0.0, 4000)).is_some());
-        feed(&mut r, &slow(5.0, 4000), 3); // segunda bajada -> backoff 4
+        feed(&mut r, &slow(5.0, 4000), 3); // second drop -> backoff 4
         assert_eq!(r.backoff(), 4);
-        assert_eq!(
-            feed(&mut r, &slow(0.0, 4000), 19),
-            None,
-            "espera 5 * 4 = 20"
-        );
+        assert_eq!(feed(&mut r, &slow(0.0, 4000), 19), None, "wait 5 * 4 = 20");
         assert!(r.observe(&slow(0.0, 4000)).is_some());
     }
 
@@ -461,7 +461,7 @@ mod tests {
         feed(&mut r, &slow(5.0, 4000), 3);
         assert_eq!(r.backoff(), 2);
         wake(&mut r);
-        // Estable: dentro del presupuesto, sin holgura para subir. 5 * 8 = 40 muestras.
+        // Stable: within budget, no headroom to rise. 5 * 8 = 40 samples.
         assert_eq!(feed(&mut r, &slow(2.0, 4000), 60), None);
         assert_eq!(r.backoff(), 1);
     }

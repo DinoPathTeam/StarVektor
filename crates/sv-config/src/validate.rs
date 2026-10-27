@@ -1,13 +1,13 @@
-//! Reglas de rango de la configuración.
+//! Range rules for the configuration.
 
 use crate::error::ConfigIssue;
 use crate::model::{CONFIG_VERSION, Config};
 
-/// Máximo razonable de VRAM libre exigida, en MB (evita errores de unidad).
+/// Reasonable maximum of required free VRAM, in MB (catches unit mistakes).
 const MAX_VRAM_MB: u32 = 1 << 20;
 
 impl Config {
-    /// Lista de problemas; vacía si la configuración es válida.
+    /// List of problems; empty if the configuration is valid.
     #[must_use]
     pub fn validate(&self) -> Vec<ConfigIssue> {
         let mut issues = Vec::new();
@@ -21,7 +21,7 @@ impl Config {
             self.config_version == CONFIG_VERSION,
             "config_version",
             &format!(
-                "versión no soportada: {} (se espera {CONFIG_VERSION})",
+                "unsupported version: {} (expected {CONFIG_VERSION})",
                 self.config_version
             ),
         );
@@ -30,43 +30,43 @@ impl Config {
         check(
             is_fraction(r.budget_fraction),
             "regulator.budget_fraction",
-            "debe estar en (0, 0.5]",
+            "must be in (0, 0.5]",
         );
         check(
             r.up_margin > 0.0 && r.up_margin <= 1.0,
             "regulator.up_margin",
-            "debe estar en (0, 1]",
+            "must be in (0, 1]",
         );
         check(
             r.vram_floor_mb <= MAX_VRAM_MB,
             "regulator.vram_floor_mb",
-            "valor absurdo (¿MB?)",
+            "absurd value (MB?)",
         );
         check(
             r.vram_margin_mb <= MAX_VRAM_MB,
             "regulator.vram_margin_mb",
-            "valor absurdo (¿MB?)",
+            "absurd value (MB?)",
         );
         check(
             r.panic_frames >= 1,
             "regulator.panic_frames",
-            "debe ser al menos 1",
+            "must be at least 1",
         );
         check(
             r.settle_frames >= 1,
             "regulator.settle_frames",
-            "debe ser al menos 1",
+            "must be at least 1",
         );
         check(
             r.max_backoff >= 1,
             "regulator.max_backoff",
-            "debe ser al menos 1",
+            "must be at least 1",
         );
 
         check(
             !self.telemetry.mark_key.trim().is_empty(),
             "telemetry.mark_key",
-            "no puede estar vacía",
+            "cannot be empty",
         );
         check(
             self.telemetry
@@ -74,7 +74,7 @@ impl Config {
                 .as_deref()
                 .is_none_or(|d| !d.trim().is_empty()),
             "telemetry.dir",
-            "si se indica, no puede estar vacío",
+            "if set, it cannot be empty",
         );
 
         for (name, profile) in &self.profiles {
@@ -82,12 +82,12 @@ impl Config {
             check(
                 !name.trim().is_empty(),
                 &base,
-                "el nombre del juego no puede estar vacío",
+                "the game name cannot be empty",
             );
             check(
                 profile.budget_fraction.is_none_or(is_fraction),
                 &format!("{base}.budget_fraction"),
-                "debe estar en (0, 0.5]",
+                "must be in (0, 0.5]",
             );
         }
         issues
@@ -132,7 +132,7 @@ mod tests {
         ] {
             assert!(
                 found.iter().any(|p| p == expected),
-                "falta {expected} en {found:?}"
+                "missing {expected} in {found:?}"
             );
         }
     }

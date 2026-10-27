@@ -1,9 +1,11 @@
 [package]
 name = "sv-core"
-description = "Núcleo agnóstico: predictor de tiempos, regulador de niveles y detección de la cadena"
+description = "Agnostic core: frame-time predictor, level regulator and chain detection"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

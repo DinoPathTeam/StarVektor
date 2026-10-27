@@ -1,4 +1,4 @@
-//! Estado de la TUI y reglas de edición. No depende del terminal.
+//! TUI state and editing rules. Does not depend on the terminal.
 
 use std::path::{Path, PathBuf};
 
@@ -6,7 +6,7 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sv_config::{Config, HookMode};
 use sv_types::Level;
 
-/// Ajustes editables, en el orden en que se muestran.
+/// Editable settings, in the order they are displayed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Field {
     Enabled,
@@ -38,59 +38,55 @@ impl Field {
     #[must_use]
     pub fn label(self) -> &'static str {
         match self {
-            Field::Enabled => "StarVektor activo",
-            Field::MaxLevel => "Nivel máximo",
-            Field::BudgetFraction => "Presupuesto de tiempo",
-            Field::VramFloorMb => "VRAM libre mínima",
-            Field::VramMarginMb => "Margen de VRAM para subir",
-            Field::SettleFrames => "Fotogramas para subir",
-            Field::PanicFrames => "Fotogramas para bajar",
-            Field::Hook => "Enganche",
-            Field::TelemetryEnabled => "Escribir log",
+            Field::Enabled => "StarVektor enabled",
+            Field::MaxLevel => "Maximum level",
+            Field::BudgetFraction => "Time budget",
+            Field::VramFloorMb => "Minimum free VRAM",
+            Field::VramMarginMb => "VRAM margin to rise",
+            Field::SettleFrames => "Frames to rise",
+            Field::PanicFrames => "Frames to drop",
+            Field::Hook => "Hook",
+            Field::TelemetryEnabled => "Write log",
             Field::Overlay => "Overlay",
         }
     }
 
-    /// Explicación de una línea del ajuste seleccionado.
+    /// One-line explanation of the selected setting.
     #[must_use]
     pub fn help(self) -> &'static str {
         match self {
-            Field::Enabled => "Interruptor general. Apagado, todo pasa sin tocarse.",
+            Field::Enabled => "Master switch. When off, everything passes through untouched.",
             Field::MaxLevel => {
-                "Tope del regulador: 0 apagado, 1 clásico, 2 red mínima, 3 red completa."
+                "Regulator cap: 0 off, 1 classic, 2 minimal network, 3 full network."
             }
             Field::BudgetFraction => {
-                "Parte del tiempo base del juego que StarVektor puede gastar por fotograma."
+                "Share of the game's base frame time StarVektor may spend per frame."
             }
-            Field::VramFloorMb => "Si la VRAM libre baja de aquí, el regulador baja de nivel.",
-            Field::VramMarginMb => {
-                "VRAM libre extra sobre el mínimo que hace falta para subir de nivel."
-            }
+            Field::VramFloorMb => "If free VRAM drops below this, the regulator drops a level.",
+            Field::VramMarginMb => "Extra free VRAM above the minimum needed to rise a level.",
             Field::SettleFrames => {
-                "Fotogramas buenos seguidos antes de subir. Más alto, menos oscilación."
+                "Consecutive good frames before rising. Higher means less oscillation."
             }
             Field::PanicFrames => {
-                "Fotogramas malos seguidos antes de bajar. Más alto, más tolerancia a picos."
+                "Consecutive bad frames before dropping. Higher means more tolerance to spikes."
             }
             Field::Hook => {
-                "auto elige según la medición; vulkan = capa implícita; gamescope = dentro de gamescope."
+                "auto picks based on the measurement; vulkan = implicit layer; gamescope = inside gamescope."
             }
-            Field::TelemetryEnabled => {
-                "Escribe un log JSONL por ejecución (sin imágenes ni datos del juego)."
-            }
-            Field::Overlay => "Muestra frame time, nivel activo y la tecla de marca de artefactos.",
+            Field::TelemetryEnabled => "Writes one JSONL log per run (no images or game data).",
+            Field::Overlay => "Shows frame time, active level and the artifact mark key.",
         }
     }
 }
 
-/// Resultado de la última acción, para la barra de estado.
+/// Result of the last action, for the status bar.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {
     None,
     Saved,
     Reloaded,
     Error(String),
-    /// Se pidió salir con cambios sin guardar; otra `q` confirma.
+    /// Quit was requested with unsaved changes; another `q` confirms.
     ConfirmQuit,
 }
 
@@ -152,7 +148,7 @@ impl App {
         self.quit
     }
 
-    /// Valor del ajuste, listo para mostrar.
+    /// Value of the setting, ready to display.
     #[must_use]
     pub fn value(&self, field: Field) -> String {
         let r = &self.config.regulator;
@@ -201,14 +197,14 @@ impl App {
         }
     }
 
-    /// Mueve la selección con vuelta al llegar al borde.
+    /// Moves the selection, wrapping around at the edge.
     pub fn select(&mut self, delta: i32) {
         let len = i32::try_from(Field::ALL.len()).unwrap_or(1);
         let current = i32::try_from(self.selected).unwrap_or(0);
         self.selected = usize::try_from((current + delta).rem_euclid(len)).unwrap_or(0);
     }
 
-    /// Cambia el ajuste seleccionado un paso (`delta` = -1 o +1).
+    /// Changes the selected setting by one step (`delta` = -1 or +1).
     pub fn adjust(&mut self, delta: i32) {
         let before = self.config.clone();
         let field = self.selected_field();
@@ -241,7 +237,7 @@ impl App {
         }
     }
 
-    /// Guarda en el archivo. Si falla, los cambios siguen en pantalla.
+    /// Saves to the file. If it fails, the changes stay on screen.
     pub fn save(&mut self) {
         match self.config.save(&self.path) {
             Ok(()) => {
@@ -252,7 +248,7 @@ impl App {
         }
     }
 
-    /// Descarta los cambios y vuelve a leer el archivo (o los valores por defecto si no existe).
+    /// Discards the changes and re-reads the file (or the defaults if it does not exist).
     pub fn reload(&mut self) {
         match Config::load_or_default(&self.path) {
             Ok(config) => {
@@ -266,15 +262,15 @@ impl App {
 }
 
 fn on_off(value: bool) -> String {
-    if value { "sí" } else { "no" }.to_owned()
+    if value { "yes" } else { "no" }.to_owned()
 }
 
 fn level_text(level: Level) -> &'static str {
     match level {
-        Level::Off => "0 · apagado",
-        Level::Classic => "1 · clásico",
-        Level::MiniNet => "2 · red mínima",
-        Level::FullNet => "3 · red completa",
+        Level::Off => "0 · off",
+        Level::Classic => "1 · classic",
+        Level::MiniNet => "2 · minimal network",
+        Level::FullNet => "3 · full network",
     }
 }
 
@@ -352,7 +348,7 @@ mod tests {
             app.handle_key(key(KeyCode::Right));
         }
         assert_eq!(app.config().regulator.max_level, Level::FullNet);
-        assert_eq!(app.value(Field::MaxLevel), "3 · red completa");
+        assert_eq!(app.value(Field::MaxLevel), "3 · full network");
     }
 
     #[test]
@@ -372,7 +368,7 @@ mod tests {
         assert!((app.config().regulator.budget_fraction - 0.01).abs() < 1e-9);
         assert!(
             app.config().validate().is_empty(),
-            "nada de lo que permite la TUI es inválido"
+            "nothing the TUI allows is invalid"
         );
     }
 
@@ -444,7 +440,7 @@ mod tests {
         app.handle_key(key(KeyCode::Esc));
         app.handle_key(key(KeyCode::Down));
         app.handle_key(key(KeyCode::Char('q')));
-        assert!(!app.should_quit(), "la confirmación se reinició");
+        assert!(!app.should_quit(), "the confirmation was reset");
     }
 
     #[test]
@@ -474,10 +470,10 @@ mod tests {
 
     #[test]
     fn a_failed_save_keeps_the_changes_and_reports_the_error() {
-        // El "directorio" padre es un archivo: crear la ruta tiene que fallar.
+        // The parent "directory" is a file: creating the path must fail.
         let dir = temp_dir("fail");
         std::fs::create_dir_all(&dir).unwrap();
-        let blocker = dir.join("archivo");
+        let blocker = dir.join("file");
         std::fs::write(&blocker, "x").unwrap();
         let mut app = App::new(Config::default(), blocker.join("config.toml"));
         app.handle_key(key(KeyCode::Enter));

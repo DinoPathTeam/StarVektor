@@ -1,4 +1,4 @@
-"""Pruebas de scripts/check_sources.py. Ejecutar con:
+"""Tests for scripts/check_sources.py. Run with:
 
     python3 -m unittest discover -s scripts -p "test_*.py"
 """
@@ -20,11 +20,11 @@ BASE = {
 
 def source(**overrides):
     entry = {
-        "id": "escena-01",
+        "id": "scene-01",
         "kind": "own_scene",
         "use": ["train", "eval"],
-        "license": "propia",
-        "origin": "escena propia en Godot",
+        "license": "own",
+        "origin": "own scene in Godot",
         "added": "2026-10-26",
         "frame_generation": "off",
     }
@@ -47,12 +47,12 @@ class CheckSources(unittest.TestCase):
         self.assertTrue(any("origin" in p for p in found), found)
 
     def test_duplicate_ids_and_unknown_kinds(self):
-        found = problems_for(source(), source(kind="scrapeo"))
-        self.assertTrue(any("id repetido" in p for p in found), found)
-        self.assertTrue(any("kind desconocido" in p for p in found), found)
+        found = problems_for(source(), source(kind="scraping"))
+        self.assertTrue(any("duplicate id" in p for p in found), found)
+        self.assertTrue(any("unknown kind" in p for p in found), found)
 
     def test_use_must_be_train_and_or_eval(self):
-        self.assertTrue(problems_for(source(use=["publicar"])))
+        self.assertTrue(problems_for(source(use=["publish"])))
         self.assertTrue(problems_for(source(use=[])))
 
     def test_frame_generation_must_be_declared_off(self):
@@ -60,22 +60,22 @@ class CheckSources(unittest.TestCase):
         del missing["frame_generation"]
         self.assertTrue(any("frame_generation" in p for p in problems_for(missing)))
         found = problems_for(source(frame_generation="on"))
-        self.assertTrue(any("generación de fotogramas" in p for p in found), found)
+        self.assertTrue(any("frame generation" in p for p in found), found)
 
     def test_short_game_names_do_not_cause_false_positives(self):
-        # "control" aparece dentro de otra frase, pero no es el juego Control.
-        ok = source(origin="escena propia con control de versiones", game="Mi juego")
+        # "control" appears inside another phrase, but it is not the game Control.
+        ok = source(origin="own scene under version control", game="My game")
         self.assertEqual(problems_for(ok), [])
 
     def test_bad_date(self):
-        self.assertTrue(any("AAAA-MM-DD" in p for p in problems_for(source(added="ayer"))))
+        self.assertTrue(any("YYYY-MM-DD" in p for p in problems_for(source(added="yesterday"))))
 
     def test_a_permitted_game_needs_explicit_permission_and_name(self):
-        found = problems_for(source(id="juego-x", kind="permitted_game"))
+        found = problems_for(source(id="game-x", kind="permitted_game"))
         self.assertTrue(any("permission" in p for p in found), found)
         self.assertTrue(any("`game`" in p for p in found), found)
         ok = problems_for(
-            source(id="juego-x", kind="permitted_game", game="Juego X", permission="carta del estudio")
+            source(id="game-x", kind="permitted_game", game="Game X", permission="letter from the studio")
         )
         self.assertEqual(ok, [])
 
@@ -88,15 +88,15 @@ class CheckSources(unittest.TestCase):
             use=["train"],
         )
         found = problems_for(sneaky)
-        self.assertTrue(any("solo evaluación" in p for p in found), found)
+        self.assertTrue(any("evaluation-only" in p for p in found), found)
         evaluation = source(
             id="cp-02", kind="permitted_game", game="Cyberpunk 2077", permission="x", use=["eval"]
         )
         self.assertEqual(problems_for(evaluation), [])
 
     def test_reference_generator_output_can_never_train(self):
-        found = problems_for(source(id="fsr3-capturas", use=["train"]))
-        self.assertTrue(any("generador de referencia" in p for p in found), found)
+        found = problems_for(source(id="fsr3-captures", use=["train"]))
+        self.assertTrue(any("reference generator" in p for p in found), found)
 
     def test_wrong_schema_version(self):
         self.assertTrue(check_sources.check({**BASE, "schema": 2}))
@@ -111,8 +111,8 @@ class CheckSources(unittest.TestCase):
     def test_unreadable_file_exits_with_2(self):
         script = Path(check_sources.__file__)
         with tempfile.TemporaryDirectory() as tmp:
-            broken = Path(tmp) / "roto.toml"
-            broken.write_text("esto = no es toml [")
+            broken = Path(tmp) / "broken.toml"
+            broken.write_text("this = is not toml [")
             result = subprocess.run(
                 [sys.executable, str(script), str(broken)],
                 capture_output=True,

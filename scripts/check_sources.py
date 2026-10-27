@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Verifica data/sources.toml contra la política de datos (docs/data-policy.md).
+"""Checks data/sources.toml against the data policy (docs/data-policy.md).
 
-Uso: python3 scripts/check_sources.py [ruta]   (por defecto, data/sources.toml)
-Código de salida: 0 si cumple, 1 si hay violaciones, 2 si falla la lectura.
+Usage: python3 scripts/check_sources.py [path]   (default: data/sources.toml)
+Exit code: 0 if compliant, 1 if there are violations, 2 if reading fails.
 """
 
 import re
@@ -18,28 +18,28 @@ DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def norm(text: object) -> str:
-    """Minúsculas y solo letras y dígitos: "FSR 3" y "fsr3-capturas" son comparables."""
+    """Lowercase letters and digits only: "FSR 3" and "fsr3-captures" are comparable."""
     return re.sub(r"[^a-z0-9]", "", str(text).casefold())
 
 
 def check(data: dict) -> list[str]:
-    """Devuelve la lista de violaciones; vacía si la política se cumple."""
+    """Returns the list of violations; empty if the policy is met."""
     problems: list[str] = []
 
     if data.get("schema") != 1:
-        problems.append("schema debe ser 1")
+        problems.append("schema must be 1")
 
     evaluation_only = data.get("evaluation_only", {}).get("games", [])
     if not isinstance(evaluation_only, list) or not all(
         isinstance(g, str) and g.strip() for g in evaluation_only
     ):
-        problems.append("evaluation_only.games debe ser una lista de nombres")
+        problems.append("evaluation_only.games must be a list of names")
         evaluation_only = []
     reference_only = data.get("reference_only", {}).get("systems", [])
     if not isinstance(reference_only, list) or not all(
         isinstance(s, str) and s.strip() for s in reference_only
     ):
-        problems.append("reference_only.systems debe ser una lista de nombres")
+        problems.append("reference_only.systems must be a list of names")
         reference_only = []
 
     eval_only_names = {norm(g) for g in evaluation_only}
@@ -51,51 +51,51 @@ def check(data: dict) -> list[str]:
         label = f"source #{index} ({source.get('id', '?')})"
         for key in REQUIRED:
             if not source.get(key):
-                problems.append(f"{label}: falta `{key}`")
+                problems.append(f"{label}: missing `{key}`")
 
         source_id = source.get("id")
         if source_id in seen_ids:
-            problems.append(f"{label}: id repetido")
+            problems.append(f"{label}: duplicate id")
         if source_id:
             seen_ids.add(source_id)
 
         kind = source.get("kind")
         if kind and kind not in KINDS:
-            problems.append(f"{label}: kind desconocido `{kind}`")
+            problems.append(f"{label}: unknown kind `{kind}`")
 
         uses = source.get("use", [])
         if not isinstance(uses, list) or not uses or not set(uses) <= USES:
-            problems.append(f"{label}: `use` debe ser una lista con train y/o eval")
+            problems.append(f"{label}: `use` must be a list with train and/or eval")
             uses = []
 
         added = source.get("added")
         if added and not DATE.match(str(added)):
-            problems.append(f"{label}: `added` debe ser AAAA-MM-DD")
+            problems.append(f"{label}: `added` must be YYYY-MM-DD")
 
         if kind == "permitted_game":
             if not source.get("permission"):
-                problems.append(f"{label}: un juego necesita `permission` explícito")
+                problems.append(f"{label}: a game needs an explicit `permission`")
             if not source.get("game"):
-                problems.append(f"{label}: un juego necesita `game`")
+                problems.append(f"{label}: a game needs `game`")
 
         if source.get("frame_generation") and source["frame_generation"] != "off":
             problems.append(
-                f"{label}: la captura debe hacerse con la generación de fotogramas "
+                f"{label}: capture must be done with frame generation off "
                 '(`frame_generation = "off"`)'
             )
 
-        # Un juego de solo evaluación se reconoce por su nombre exacto en `game`.
-        # Un juego comercial declarado como otra cosa no se puede detectar aquí:
-        # eso lo cubre la revisión humana (ver docs/data-policy.md).
+        # An evaluation-only game is recognized by its exact name in `game`.
+        # A commercial game declared as something else cannot be detected here:
+        # human review covers that (see docs/data-policy.md).
         if "train" in uses and norm(source.get("game", "")) in eval_only_names:
-            problems.append(f"{label}: un juego de solo evaluación no puede usarse para entrenar")
+            problems.append(f"{label}: an evaluation-only game cannot be used for training")
 
-        # Los generadores de referencia tienen nombres distintivos: basta con que
-        # aparezcan dentro del id o del origen.
+        # Reference generators have distinctive names: it is enough that they
+        # appear inside the id or the origin.
         text = norm(source.get("id", "")) + "|" + norm(source.get("origin", ""))
         if "train" in uses and any(ref and ref in text for ref in reference_names):
             problems.append(
-                f"{label}: la salida de un generador de referencia no puede usarse para entrenar"
+                f"{label}: the output of a reference generator cannot be used for training"
             )
 
     return problems
@@ -106,19 +106,19 @@ def main(argv: list[str]) -> int:
     try:
         data = tomllib.loads(path.read_text())
     except (OSError, tomllib.TOMLDecodeError) as err:
-        print(f"error al leer {path}: {err}", file=sys.stderr)
+        print(f"error reading {path}: {err}", file=sys.stderr)
         return 2
 
     problems = check(data)
     if problems:
-        print("Violaciones de la política de datos:")
+        print("Data policy violations:")
         for problem in problems:
             print(f"  - {problem}")
         return 1
 
     print(
-        f"fuentes ok ({len(data.get('source', []))} fuentes, "
-        f"{len(data.get('evaluation_only', {}).get('games', []))} juegos solo-evaluación)"
+        f"sources ok ({len(data.get('source', []))} sources, "
+        f"{len(data.get('evaluation_only', {}).get('games', []))} evaluation-only games)"
     )
     return 0
 

@@ -1,4 +1,4 @@
-//! Carga y guardado del archivo de configuración, y rutas por defecto.
+//! Loading and saving of the configuration file, and default paths.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -6,18 +6,18 @@ use std::path::{Path, PathBuf};
 use crate::error::ConfigError;
 use crate::model::Config;
 
-/// Lector de variables de entorno inyectable (para probar sin tocar el proceso).
+/// Injectable environment variable reader (to test without touching the process).
 pub type EnvGet<'a> = &'a dyn Fn(&str) -> Option<String>;
 
-/// Lector del entorno real del proceso.
+/// Reader of the process's real environment.
 #[must_use]
 pub fn process_env(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|v| !v.is_empty())
 }
 
-/// Ruta del archivo de configuración:
-/// `$STARVEKTOR_CONFIG`, o `$XDG_CONFIG_HOME/starvektor/config.toml`,
-/// o `$HOME/.config/starvektor/config.toml`.
+/// Path of the configuration file:
+/// `$STARVEKTOR_CONFIG`, or `$XDG_CONFIG_HOME/starvektor/config.toml`,
+/// or `$HOME/.config/starvektor/config.toml`.
 #[must_use]
 pub fn default_config_path(get: EnvGet<'_>) -> Option<PathBuf> {
     if let Some(explicit) = get("STARVEKTOR_CONFIG") {
@@ -26,8 +26,8 @@ pub fn default_config_path(get: EnvGet<'_>) -> Option<PathBuf> {
     base_dir(get, "XDG_CONFIG_HOME", ".config").map(|d| d.join("starvektor").join("config.toml"))
 }
 
-/// Directorio de logs por defecto:
-/// `$XDG_STATE_HOME/starvektor/logs` o `$HOME/.local/state/starvektor/logs`.
+/// Default log directory:
+/// `$XDG_STATE_HOME/starvektor/logs` or `$HOME/.local/state/starvektor/logs`.
 #[must_use]
 pub fn default_log_dir(get: EnvGet<'_>) -> Option<PathBuf> {
     base_dir(get, "XDG_STATE_HOME", ".local/state").map(|d| d.join("starvektor").join("logs"))
@@ -41,28 +41,28 @@ fn base_dir(get: EnvGet<'_>, xdg_var: &str, home_relative: &str) -> Option<PathB
 }
 
 impl Config {
-    /// Lee y valida un TOML.
+    /// Reads and validates a TOML.
     ///
     /// # Errors
-    /// Si el TOML no se puede leer, trae campos desconocidos o valores fuera de rango.
+    /// If the TOML cannot be read, has unknown fields or out-of-range values.
     pub fn from_toml_str(text: &str) -> Result<Self, ConfigError> {
         let cfg: Config = toml::from_str(text)?;
         cfg.check()
     }
 
-    /// Escribe el TOML. Falla si la configuración no es válida.
+    /// Writes the TOML. Fails if the configuration is not valid.
     ///
     /// # Errors
-    /// Si la configuración es inválida o no se puede serializar.
+    /// If the configuration is invalid or cannot be serialized.
     pub fn to_toml_string(&self) -> Result<String, ConfigError> {
         self.clone().check()?;
         Ok(toml::to_string_pretty(self)?)
     }
 
-    /// Carga el archivo en `path`.
+    /// Loads the file at `path`.
     ///
     /// # Errors
-    /// Si no se puede leer o su contenido no es válido.
+    /// If it cannot be read or its content is not valid.
     pub fn load(path: &Path) -> Result<Self, ConfigError> {
         let text = fs::read_to_string(path).map_err(|source| ConfigError::Io {
             path: path.to_path_buf(),
@@ -71,10 +71,10 @@ impl Config {
         Self::from_toml_str(&text)
     }
 
-    /// Como [`Config::load`], pero un archivo inexistente da la configuración por defecto.
+    /// Like [`Config::load`], but a missing file yields the default configuration.
     ///
     /// # Errors
-    /// Si el archivo existe y no se puede leer o no es válido.
+    /// If the file exists and cannot be read or is not valid.
     pub fn load_or_default(path: &Path) -> Result<Self, ConfigError> {
         match fs::read_to_string(path) {
             Ok(text) => Self::from_toml_str(&text),
@@ -86,11 +86,11 @@ impl Config {
         }
     }
 
-    /// Guarda de forma atómica (archivo temporal y renombrado), creando los
-    /// directorios que falten. Los comentarios del archivo anterior no se conservan.
+    /// Saves atomically (temporary file and rename), creating any missing
+    /// directories. Comments from the previous file are not preserved.
     ///
     /// # Errors
-    /// Si la configuración es inválida o falla la escritura.
+    /// If the configuration is invalid or the write fails.
     pub fn save(&self, path: &Path) -> Result<(), ConfigError> {
         let text = self.to_toml_string()?;
         let io_err = |source| ConfigError::Io {
@@ -193,7 +193,7 @@ mod tests {
             Err(ConfigError::Parse(_))
         ));
         assert!(matches!(
-            Config::from_toml_str("sorpresa = true\n"),
+            Config::from_toml_str("surprise = true\n"),
             Err(ConfigError::Parse(_))
         ));
     }
@@ -241,17 +241,17 @@ mod tests {
     fn load_or_default_handles_a_missing_file_but_not_a_broken_one() {
         let dir = temp_dir("missing");
         assert_eq!(
-            Config::load_or_default(&dir.join("nada.toml")).unwrap(),
+            Config::load_or_default(&dir.join("nothing.toml")).unwrap(),
             Config::default()
         );
         assert!(matches!(
-            Config::load(&dir.join("nada.toml")),
+            Config::load(&dir.join("nothing.toml")),
             Err(ConfigError::Io { .. })
         ));
 
         fs::create_dir_all(&dir).unwrap();
-        let broken = dir.join("roto.toml");
-        fs::write(&broken, "esto = no es toml [").unwrap();
+        let broken = dir.join("broken.toml");
+        fs::write(&broken, "this = is not toml [").unwrap();
         assert!(matches!(
             Config::load_or_default(&broken),
             Err(ConfigError::Parse(_))
@@ -279,11 +279,11 @@ mod tests {
             Some(PathBuf::from("/home/u/.config/starvektor/config.toml"))
         );
 
-        let relative_xdg = env(&[("XDG_CONFIG_HOME", "relativa"), ("HOME", "/home/u")]);
+        let relative_xdg = env(&[("XDG_CONFIG_HOME", "relative"), ("HOME", "/home/u")]);
         assert_eq!(
             default_config_path(&relative_xdg),
             Some(PathBuf::from("/home/u/.config/starvektor/config.toml")),
-            "XDG relativo se ignora, según la especificación"
+            "relative XDG is ignored, per the specification"
         );
 
         assert_eq!(default_config_path(&env(&[])), None);

@@ -1,27 +1,27 @@
-//! Detección de la cadena: ¿hay upscaling, generación de fotogramas o ambos? (D7)
+//! Chain detection: is there upscaling, frame generation, or both? (D7)
 //!
-//! Se detecta en vez de asumirse. La señal de generación de fotogramas es la
-//! relación entre los fotogramas presentados y los que traen datos de
-//! movimiento nuevos: si llegan datos nuevos cada dos fotogramas, hay FG.
-//! Es una heurística: se valida en la fase 1 (H1.2) con OptiScaler real.
+//! It is detected instead of assumed. The frame generation signal is the ratio
+//! between presented frames and frames that carry new motion data: if new data
+//! arrives every second frame, FG is active. This is a heuristic: it is
+//! validated in Phase 1 (H1.2) with a real OptiScaler.
 
 use sv_types::OptiScalerMode;
 
-/// Medidas de la última ventana de observación.
+/// Measurements from the latest observation window.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ChainSignals {
-    /// Fotogramas presentados por segundo.
+    /// Frames presented per second.
     pub presented_fps: f64,
-    /// Fotogramas por segundo con vectores de movimiento nuevos.
+    /// Frames per second with fresh motion vectors.
     pub fresh_motion_fps: f64,
-    /// Si se detectó un upscaler temporal en la cadena del juego.
+    /// Whether a temporal upscaler was detected in the game's chain.
     pub upscaler_detected: bool,
 }
 
-/// Relación presentados/nuevos a partir de la cual se considera FG activo.
+/// Presented/fresh ratio from which FG is considered active.
 const FG_RATIO_THRESHOLD: f64 = 1.7;
 
-/// Clasificación instantánea, sin memoria.
+/// Instantaneous classification, with no memory.
 #[must_use]
 pub fn classify(signals: &ChainSignals) -> OptiScalerMode {
     let fg = signals.fresh_motion_fps > 0.0
@@ -34,8 +34,8 @@ pub fn classify(signals: &ChainSignals) -> OptiScalerMode {
     }
 }
 
-/// Detector con confirmación: solo cambia de modo tras varias ventanas iguales,
-/// para que una escena de carga o un corte no lo haga oscilar.
+/// Detector with confirmation: it only changes mode after several identical
+/// windows, so a loading screen or a cut does not make it oscillate.
 #[derive(Debug, Clone)]
 pub struct ChainDetector {
     confirm_after: u32,
@@ -45,7 +45,7 @@ pub struct ChainDetector {
 }
 
 impl ChainDetector {
-    /// `confirm_after`: ventanas consecutivas necesarias para aceptar un cambio.
+    /// `confirm_after`: consecutive windows needed to accept a change.
     #[must_use]
     pub fn new(confirm_after: u32) -> Self {
         Self {
@@ -56,7 +56,7 @@ impl ChainDetector {
         }
     }
 
-    /// Procesa una ventana y devuelve el modo vigente.
+    /// Processes a window and returns the current mode.
     pub fn observe(&mut self, signals: &ChainSignals) -> OptiScalerMode {
         let seen = classify(signals);
         if seen == self.current {
@@ -117,7 +117,7 @@ mod tests {
             d.observe(&sig(60.0, 60.0, true));
         }
         assert_eq!(d.current(), OptiScalerMode::Upscale);
-        // Una ventana rara (carga de escena) no cambia el modo.
+        // A single odd window (scene load) does not change the mode.
         d.observe(&sig(120.0, 60.0, true));
         assert_eq!(d.current(), OptiScalerMode::Upscale);
         d.observe(&sig(60.0, 60.0, true));

@@ -1,10 +1,10 @@
-//! `starvektor selftest`: ejecuta el sistema completo contra un juego sintético.
+//! `starvektor selftest`: runs the whole system against a synthetic game.
 //!
-//! Comprueba la **conexión** entre capas (plataforma -> predictor -> regulador
-//! -> telemetría -> validador), no el rendimiento: los tiempos del juego y el
-//! costo por nivel son inventados. Las cifras reales salen de la fase 1.
-//! Cumple el criterio de salida de la fase 0: un `run` válido escrito y
-//! verificado contra el esquema.
+//! It checks the **connection** between layers (platform -> predictor -> regulator
+//! -> telemetry -> validator), not performance: the game's timings and the
+//! cost per level are made up. Real figures come from Phase 1.
+//! It meets the Phase 0 exit criterion: a valid `run` written and
+//! checked against the schema.
 
 use std::error::Error;
 use std::fs::File;
@@ -30,7 +30,7 @@ use super::{CommandResult, config_path};
 use crate::cli::SelftestArgs;
 use crate::{ids, wiring};
 
-/// Nombre con el que el selftest busca su perfil en la configuración.
+/// Name under which the selftest looks up its profile in the configuration.
 pub const GAME_NAME: &str = "selftest";
 
 #[derive(Debug, Clone, Copy)]
@@ -39,11 +39,11 @@ pub struct SelftestOptions {
     pub seed: u64,
 }
 
-/// Qué pasó en la ejecución.
+/// What happened during the run.
 #[derive(Debug)]
 pub struct SelftestOutcome {
     pub out: PathBuf,
-    /// Cambios de nivel y el fotograma en el que ocurrieron.
+    /// Level changes and the frame at which they occurred.
     pub transitions: Vec<(u64, Transition)>,
     pub final_level: Level,
     pub summary: Option<SummaryRecord>,
@@ -77,10 +77,10 @@ pub fn run(args: &SelftestArgs, explicit_config: Option<&Path>) -> CommandResult
     Ok(ExitCode::SUCCESS)
 }
 
-/// Ejecuta el selftest y valida el log resultante.
+/// Runs the selftest and validates the resulting log.
 ///
 /// # Errors
-/// Si falla la plataforma, el backend, la escritura o la validación del log.
+/// If the platform, the backend, the writing or the log validation fails.
 pub fn run_selftest(
     config: &Config,
     options: SelftestOptions,
@@ -112,8 +112,8 @@ pub fn run_selftest(
         started_at: utc_now_iso8601(),
         game: GAME_NAME.to_owned(),
         game_version: env!("CARGO_PKG_VERSION").to_owned(),
-        scene: "sintetica".to_owned(),
-        gpu: "ninguna (sintético)".to_owned(),
+        scene: "synthetic".to_owned(),
+        gpu: "none (synthetic)".to_owned(),
         driver: format!("{}/{}", platform.name(), gfx.name()),
         mesa: None,
         resolution,
@@ -146,7 +146,7 @@ pub fn run_selftest(
         previous_render_ms = Some(captured.render_ts_ms);
         let base_ms = predictor.predict_ms().unwrap_or(refresh_ms);
 
-        // El costo depende del nivel con el que se procesa este fotograma.
+        // The cost depends on the level at which this frame is processed.
         let level = regulator.level();
         gfx.set_timings(synthetic_cost(level));
         let memory = gfx.memory_budget()?;
@@ -179,7 +179,7 @@ pub fn run_selftest(
         n += 1;
 
         if level >= Level::Classic {
-            // Fotograma generado a mitad de camino hasta el próximo previsto.
+            // Frame generated halfway to the next expected one.
             let generated = FrameRecord {
                 n,
                 t_present_ms: present_ms + base_ms / 2.0,
@@ -220,19 +220,22 @@ pub fn run_selftest(
     }
 
     let frames_logged = summary.frames();
-    // Sin latencia estimada: el selftest no mide ninguna, y el log no debe inventarla.
+    // No estimated latency: the selftest measures none, and the log must not invent it.
     let summary_record = summary.finish(None);
     if let Some(record) = &summary_record {
         writer.log(Record::Summary(record.clone()));
     }
     let stats = writer.finish()?;
     if stats.dropped > 0 {
-        return Err(format!("se descartaron {} registros del log", stats.dropped).into());
+        return Err(format!("{} log records were dropped", stats.dropped).into());
     }
 
     let validation = validate(BufReader::new(File::open(out)?)).map_err(|issues| {
         let lines: Vec<String> = issues.iter().map(ToString::to_string).collect();
-        format!("el log generado no cumple el esquema: {}", lines.join("; "))
+        format!(
+            "the generated log does not comply with the schema: {}",
+            lines.join("; ")
+        )
     })?;
 
     Ok(SelftestOutcome {
@@ -246,7 +249,7 @@ pub fn run_selftest(
     })
 }
 
-/// Costo inventado por nivel, solo para ejercitar el regulador.
+/// Made-up cost per level, only to exercise the regulator.
 fn synthetic_cost(level: Level) -> PassTimings {
     match level {
         Level::Off => PassTimings::default(),
@@ -278,18 +281,18 @@ fn print_outcome(outcome: &SelftestOutcome) {
     println!("selftest ok");
     println!("  log: {}", outcome.out.display());
     println!(
-        "  registros: {} ({} fotogramas presentados, {} eventos)",
+        "  records: {} ({} presented frames, {} events)",
         outcome.validation.records, outcome.validation.frames, outcome.validation.events
     );
     if outcome.transitions.is_empty() {
         println!(
-            "  cambios de nivel: ninguno (nivel final {})",
+            "  level changes: none (final level {})",
             u8::from(outcome.final_level)
         );
     } else {
         for (frame, t) in &outcome.transitions {
             println!(
-                "  fotograma {frame}: nivel {} -> {} ({})",
+                "  frame {frame}: level {} -> {} ({})",
                 u8::from(t.from),
                 u8::from(t.to),
                 t.reason.as_str()
@@ -298,12 +301,12 @@ fn print_outcome(outcome: &SelftestOutcome) {
     }
     if let Some(s) = &outcome.summary {
         println!(
-            "  resumen: {:.1} fps renderizados, {:.1} presentados, p1 {:.1} ms, costo medio {:.2} ms",
+            "  summary: {:.1} rendered fps, {:.1} presented fps, p1 {:.1} ms, mean cost {:.2} ms",
             s.fps_rendered_avg, s.fps_presented_avg, s.p1_ms, s.overhead_ms_avg
         );
     }
     println!(
-        "  aviso: tiempos y costos sintéticos; esto prueba la conexión entre capas, no el rendimiento."
+        "  note: synthetic timings and costs; this tests the connection between layers, not performance."
     );
 }
 
@@ -348,7 +351,7 @@ mod tests {
         assert_eq!(
             outcome.final_level,
             Level::MiniNet,
-            "MiniNet cuesta 2.0 ms: sin holgura para FullNet"
+            "MiniNet costs 2.0 ms: no headroom for FullNet"
         );
     }
 
@@ -362,7 +365,7 @@ mod tests {
             s.fps_rendered_avg
         );
         assert!(s.fps_presented_avg > s.fps_rendered_avg * 1.4, "{s:?}");
-        assert!(s.latency_est_ms.is_none(), "no se inventa una latencia");
+        assert!(s.latency_est_ms.is_none(), "no latency is invented");
         assert!(s.overhead_ms_avg > 0.0);
         assert_eq!(outcome.frames_logged, outcome.validation.frames);
     }
@@ -421,7 +424,7 @@ mod tests {
         assert_eq!(outcome.final_level, Level::Off);
         assert_eq!(
             outcome.frames_logged, 300,
-            "sin generar: un fotograma presentado por cada renderizado"
+            "no generation: one presented frame per rendered frame"
         );
     }
 

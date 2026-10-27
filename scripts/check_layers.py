@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Verifica que las dependencias del workspace respeten architecture/layers.toml.
+"""Checks that the workspace dependencies respect architecture/layers.toml.
 
-Uso: python3 scripts/check_layers.py
-Código de salida: 0 si todo cumple, 1 si hay violaciones, 2 si falla la lectura.
+Usage: python3 scripts/check_layers.py
+Exit code: 0 if everything complies, 1 if there are violations, 2 if reading fails.
 """
 
 import json
@@ -27,7 +27,7 @@ def main() -> int:
             ).stdout
         )
     except (OSError, subprocess.CalledProcessError, tomllib.TOMLDecodeError) as err:
-        print(f"error al leer reglas o metadatos: {err}", file=sys.stderr)
+        print(f"error reading rules or metadata: {err}", file=sys.stderr)
         return 2
 
     crate_rules = rules.get("crates", {})
@@ -37,11 +37,11 @@ def main() -> int:
 
     for name in sorted(members):
         if name not in crate_rules:
-            problems.append(f"{name}: crate sin regla en architecture/layers.toml")
+            problems.append(f"{name}: crate has no rule in architecture/layers.toml")
 
     for name in sorted(crate_rules):
         if name not in members:
-            problems.append(f"{name}: tiene regla pero no existe en el workspace")
+            problems.append(f"{name}: has a rule but does not exist in the workspace")
 
     for name, pkg in sorted(members.items()):
         rule = crate_rules.get(name)
@@ -53,20 +53,20 @@ def main() -> int:
             if dep_name in members:
                 if "*" not in allow and dep_name not in allow:
                     problems.append(
-                        f"{name} -> {dep_name}: dependencia entre crates no permitida"
+                        f"{name} -> {dep_name}: dependency between crates not allowed"
                     )
             elif name in external_rules and dep_name not in external_rules[name]:
                 problems.append(
-                    f"{name} -> {dep_name}: dependencia externa no permitida"
+                    f"{name} -> {dep_name}: external dependency not allowed"
                 )
 
     if problems:
-        print("Violaciones de capas:")
+        print("Layer violations:")
         for problem in problems:
             print(f"  - {problem}")
         return 1
 
-    print(f"capas ok ({len(members)} crates revisados)")
+    print(f"layers ok ({len(members)} crates checked)")
     return 0
 
 

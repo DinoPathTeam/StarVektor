@@ -1,9 +1,11 @@
 [package]
 name = "sv-tui"
-description = "TUI para configurar StarVektor (edita el archivo TOML)"
+description = "TUI to configure StarVektor (edits the TOML file)"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

@@ -1,13 +1,13 @@
-//! Identificadores de ejecución.
+//! Run identifiers.
 
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Identificador único con forma de UUID v4, generado sin dependencias externas.
+/// Unique identifier shaped like a UUID v4, generated with no external dependencies.
 ///
-/// No es criptográficamente seguro (no hace falta): solo evita colisiones
-/// entre ejecuciones. `RandomState` aporta una semilla aleatoria por proceso.
+/// Not cryptographically secure (it does not need to be): it only avoids collisions
+/// between runs. `RandomState` provides a random seed per process.
 #[must_use]
 pub fn new_run_id() -> String {
     let nanos = SystemTime::now()
@@ -23,8 +23,8 @@ pub fn new_run_id() -> String {
         hasher.write_usize(i);
         *chunk = hasher.finish().to_le_bytes();
     }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // versión 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variante RFC 4122
+    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
+    bytes[8] = (bytes[8] & 0x3F) | 0x80; // RFC 4122 variant
 
     let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
     format!(
@@ -50,10 +50,10 @@ mod tests {
             parts.iter().map(|p| p.len()).collect::<Vec<_>>(),
             [8, 4, 4, 4, 12]
         );
-        assert!(parts[2].starts_with('4'), "versión: {id}");
+        assert!(parts[2].starts_with('4'), "version: {id}");
         assert!(
             matches!(parts[3].as_bytes()[0], b'8' | b'9' | b'a' | b'b'),
-            "variante: {id}"
+            "variant: {id}"
         );
         assert!(id.chars().all(|c| c == '-' || c.is_ascii_hexdigit()));
     }

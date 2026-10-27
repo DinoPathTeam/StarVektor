@@ -1,42 +1,42 @@
-# Arquitectura
+# Architecture
 
-## Principio
-Cada responsabilidad vive en un crate. Las capas solo dependen hacia abajo, y la regla se verifica automáticamente (`architecture/layers.toml` + `scripts/check_layers.py`, también en CI). Así un cambio queda en su crate y no obliga a tocar los demás.
+## Principle
+Each responsibility lives in one crate. Layers only depend downwards, and the rule is checked automatically (`architecture/layers.toml` + `scripts/check_layers.py`, also in CI). This way a change stays in its crate and does not force changes in the others.
 
 ```
-starvektor-cli  (raíz de composición: wiring.rs)
+starvektor-cli  (composition root: wiring.rs)
    ├── sv-tui
-   ├── sv-platform ─ sv-gfx ─ sv-inference     (backends: traits + implementaciones)
-   ├── sv-core   sv-telemetry   sv-config      (sin conocerse entre sí)
-   └── sv-types                                (contratos compartidos)
+   ├── sv-platform ─ sv-gfx ─ sv-inference     (backends: traits + implementations)
+   ├── sv-core   sv-telemetry   sv-config      (unaware of each other)
+   └── sv-types                                (shared contracts)
 ```
 
-- `sv-core` no tiene dependencias externas. `sv-config` y `sv-core` no se conocen: `wiring.rs` convierte `Config` en `RegulatorConfig`.
-- Los backends se definen como traits; hay una implementación nula o sintética para probar sin hardware.
+- `sv-core` has no external dependencies. `sv-config` and `sv-core` do not know each other: `wiring.rs` converts `Config` into `RegulatorConfig`.
+- Backends are defined as traits; there is a null or synthetic implementation to test without hardware.
 
-## Dónde va cada cambio
+## Where each change goes
 
-| Quiero… | Toco |
+| I want to… | I touch |
 |---|---|
-| Cambiar cuándo sube o baja de nivel | `sv-core/src/regulator.rs` |
-| Cambiar la predicción de tiempos | `sv-core/src/timing.rs` |
-| Añadir un ajuste de usuario | `sv-config` (`model`, `validate`, `env`), `config/example.toml`, `wiring.rs`, `sv-tui` si es editable |
-| Añadir un campo al log | `sv-telemetry/src/schema.rs`, `validate.rs`, `docs/log-schema.md`, subir versión menor |
-| Añadir un backend gráfico | nuevo crate o módulo en `sv-gfx` que implemente `GraphicsBackend`; registrar en `wiring.rs` |
-| Añadir un motor de inferencia o modelo | `sv-inference`; la elección por presupuesto está en `select_model` |
-| Portar a otro SO o enganche (capa Vulkan, gamescope) | implementar `Platform` en `sv-platform` |
-| Añadir un comando | `starvektor-cli/src/commands/` y `cli.rs` |
-| Cambiar la TUI | `sv-tui` (`app.rs` es estado puro; `ui.rs` solo dibuja) |
+| Change when the level goes up or down | `sv-core/src/regulator.rs` |
+| Change the frame-time prediction | `sv-core/src/timing.rs` |
+| Add a user setting | `sv-config` (`model`, `validate`, `env`), `config/example.toml`, `wiring.rs`, `sv-tui` if editable |
+| Add a log field | `sv-telemetry/src/schema.rs`, `validate.rs`, `docs/log-schema.md`, bump the minor version |
+| Add a graphics backend | new crate or module in `sv-gfx` implementing `GraphicsBackend`; register in `wiring.rs` |
+| Add an inference engine or model | `sv-inference`; the budget-based choice is in `select_model` |
+| Port to another OS or hook (Vulkan layer, gamescope) | implement `Platform` in `sv-platform` |
+| Add a command | `starvektor-cli/src/commands/` and `cli.rs` |
+| Change the TUI | `sv-tui` (`app.rs` is pure state; `ui.rs` only draws) |
 
-## Cómo añadir un backend (ejemplo: Vulkan)
-1. Crear el módulo/crate; si necesita `unsafe`, que sea un crate aparte con el lint relajado explícitamente.
-2. Implementar `GraphicsBackend` (`name`, `memory_budget`, `last_pass_timings`).
-3. Añadir sus dependencias externas permitidas en `architecture/layers.toml`.
-4. Elegirlo en `wiring.rs`. Ningún otro crate cambia.
+## How to add a backend (example: Vulkan)
+1. Create the module/crate; if it needs `unsafe`, make it a separate crate with the lint explicitly relaxed.
+2. Implement `GraphicsBackend` (`name`, `memory_budget`, `last_pass_timings`).
+3. Add its allowed external dependencies in `architecture/layers.toml`.
+4. Select it in `wiring.rs`. No other crate changes.
 
-## Regulador (resumen)
-Niveles 0 a 3 (apagado, clásico, red mínima, red completa). Baja rápido (`panic_frames`), sube despacio (`settle_frames`) con histéresis y espera exponencial (`max_backoff`). Se apaga si el juego ya iguala el refresco y baja si la VRAM libre cae bajo `vram_floor_mb`.
+## Regulator (summary)
+Levels 0 to 3 (off, classic, minimal network, full network). It drops quickly (`panic_frames`), rises slowly (`settle_frames`) with hysteresis and exponential backoff (`max_backoff`). It switches off if the game already matches the refresh rate and drops a level if free VRAM falls below `vram_floor_mb`.
 
-## Decisiones abiertas
-- Capa Vulkan vs gamescope: se decide con la medición de la Fase 1.
-- Shim C++: solo si la medición lo justifica.
+## Open decisions
+- Vulkan layer vs gamescope: decided with the Phase 1 measurements.
+- C++ shim: only if the measurements justify it.

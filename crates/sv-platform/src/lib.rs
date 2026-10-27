@@ -1,13 +1,13 @@
-//! Contrato de la capa de plataforma.
+//! Platform layer contract.
 //!
-//! Es lo único que cambia entre Linux y Windows: captura del fotograma,
-//! presentación y lectura de la entrada. Las implementaciones reales viven en
-//! crates aparte (por ejemplo, un futuro `sv-platform-linux` con el enganche
-//! a la capa Vulkan o a gamescope, según el resultado de la fase 1), así que
-//! portar a otro sistema es añadir un crate, no modificar este.
+//! It is the only thing that changes between Linux and Windows: frame capture,
+//! presentation and input reading. Real implementations live in separate
+//! crates (for example, a future `sv-platform-linux` with the hook
+//! into the Vulkan layer or gamescope, depending on the Phase 1 result), so
+//! porting to another system means adding a crate, not modifying this one.
 //!
-//! - [`Platform`]: el contrato.
-//! - [`synthetic`]: una plataforma sin sistema operativo, determinista, para pruebas.
+//! - [`Platform`]: the contract.
+//! - [`synthetic`]: a deterministic platform with no operating system, for tests.
 
 use std::fmt;
 
@@ -15,33 +15,33 @@ use sv_types::{FrameHandle, FrameKind, Resolution};
 
 pub mod synthetic;
 
-/// Fotograma capturado del juego. Solo metadatos: los píxeles no viajan.
+/// Frame captured from the game. Metadata only: pixels do not travel.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CapturedFrame {
     pub handle: FrameHandle,
-    /// Índice del fotograma renderizado por el juego.
+    /// Index of the frame rendered by the game.
     pub index: u64,
-    /// Instante en que el juego terminó de renderizarlo, en ms desde el inicio.
+    /// Moment the game finished rendering it, in ms since the start.
     pub render_ts_ms: f64,
     pub resolution: Resolution,
-    /// Si trae vectores de movimiento nuevos (señal para detectar la generación de fotogramas).
+    /// Whether it carries fresh motion vectors (signal to detect frame generation).
     pub fresh_motion: bool,
 }
 
-/// Petición de presentar un fotograma.
+/// Request to present a frame.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PresentRequest {
-    /// Fotograma de origen (el real, o el último en el que se basa uno generado).
+    /// Source frame (the real one, or the last one a generated frame is based on).
     pub source: FrameHandle,
     pub kind: FrameKind,
-    /// Instante objetivo de presentación, en ms desde el inicio.
+    /// Target presentation time, in ms since the start.
     pub target_ts_ms: f64,
 }
 
-/// Error de la capa de plataforma.
+/// Platform layer error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PlatformError {
-    /// El juego o el compositor se cerró.
+    /// The game or the compositor closed.
     Disconnected,
     Other(String),
 }
@@ -49,7 +49,7 @@ pub enum PlatformError {
 impl fmt::Display for PlatformError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PlatformError::Disconnected => write!(f, "el juego o el compositor se desconectó"),
+            PlatformError::Disconnected => write!(f, "the game or the compositor disconnected"),
             PlatformError::Other(what) => write!(f, "{what}"),
         }
     }
@@ -57,26 +57,26 @@ impl fmt::Display for PlatformError {
 
 impl std::error::Error for PlatformError {}
 
-/// Lo que StarVektor necesita del sistema donde corre.
+/// What StarVektor needs from the system it runs on.
 pub trait Platform {
-    /// Nombre corto para el log (`"synthetic"`, `"linux-vulkan-layer"`...).
+    /// Short name for the log (`"synthetic"`, `"linux-vulkan-layer"`...).
     fn name(&self) -> &'static str;
 
-    /// Periodo de refresco del monitor, en ms.
+    /// Monitor refresh period, in ms.
     fn refresh_period_ms(&self) -> f64;
 
-    /// Siguiente fotograma del juego. `Ok(None)` cuando termina la sesión.
+    /// Next frame of the game. `Ok(None)` when the session ends.
     ///
     /// # Errors
-    /// Si la captura falla.
+    /// If capture fails.
     fn next_frame(&mut self) -> Result<Option<CapturedFrame>, PlatformError>;
 
-    /// Presenta un fotograma y devuelve el instante real de presentación, en ms.
+    /// Presents a frame and returns the actual presentation time, in ms.
     ///
     /// # Errors
-    /// Si la presentación falla.
+    /// If presentation fails.
     fn present(&mut self, request: &PresentRequest) -> Result<f64, PlatformError>;
 
-    /// `true` si el usuario pulsó la tecla de marca desde la última consulta.
+    /// `true` if the user pressed the mark key since the last query.
     fn poll_user_mark(&mut self) -> bool;
 }

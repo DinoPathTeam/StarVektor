@@ -1,22 +1,22 @@
-//! Tipos de los registros del log. Fuente de verdad del esquema.
+//! Log record types. Source of truth for the schema.
 //!
-//! Reglas de evolución (ver `docs/log-schema.md`):
-//! - Añadir un campo opcional es compatible: sube la versión menor (`1.1`).
-//! - Quitar, renombrar o cambiar el tipo de un campo es incompatible: sube la mayor.
-//! - Los lectores aceptan cualquier versión menor de la mayor que conocen.
+//! Evolution rules (see `docs/log-schema.md`):
+//! - Adding an optional field is compatible: it bumps the minor version (`1.1`).
+//! - Removing, renaming or changing the type of a field is incompatible: it bumps the major.
+//! - Readers accept any minor version of the major they know.
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use sv_types::{FrameKind, IntegrationLevel, Level, OptiScalerMode, PassTimings, Resolution};
 
-/// Versión del esquema que escribe esta versión de StarVektor.
+/// Schema version written by this version of StarVektor.
 pub const SCHEMA_VERSION: &str = "1.0";
 
-/// Versión mayor que sabe leer el validador.
+/// Major version the validator can read.
 pub const SUPPORTED_MAJOR: &str = "1";
 
-/// Una línea del archivo: la versión del esquema más el registro.
+/// One line of the file: the schema version plus the record.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Line {
     pub schema: String,
@@ -34,27 +34,27 @@ impl Line {
     }
 }
 
-/// Registro del log. El campo `type` lo distingue.
+/// Log record. The `type` field distinguishes it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Record {
-    /// Encuadrado: aparece una vez por archivo y es mucho mayor que `Frame`,
-    /// que es el que viaja por la cola de escritura en cada fotograma.
+    /// Boxed: it appears once per file and is much larger than `Frame`,
+    /// which is the one that travels through the write queue on every frame.
     Run(Box<RunRecord>),
     Frame(FrameRecord),
     Event(EventRecord),
     Summary(SummaryRecord),
 }
 
-/// Una vez, al inicio. Debe ser la primera línea.
+/// Once, at the start. Must be the first line.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RunRecord {
     pub run_id: String,
-    /// ISO 8601 en UTC, por ejemplo `2026-10-26T17:00:00Z`.
+    /// ISO 8601 in UTC, for example `2026-10-26T17:00:00Z`.
     pub started_at: String,
     pub game: String,
     pub game_version: String,
-    /// Escena fija de prueba (exploración, combate, luz cambiante).
+    /// Fixed test scene (exploration, combat, changing light).
     pub scene: String,
     pub gpu: String,
     pub driver: String,
@@ -67,16 +67,16 @@ pub struct RunRecord {
     pub model_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model_hash: Option<String>,
-    /// Semilla para repetir la prueba exacta.
+    /// Seed to repeat the exact test.
     pub seed: u64,
-    /// Configuración completa vigente (copia de la TOML resuelta).
+    /// Full effective configuration (copy of the resolved TOML).
     pub config: serde_json::Value,
 }
 
-/// Uno por fotograma presentado.
+/// One per presented frame.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FrameRecord {
-    /// Índice del fotograma presentado, estrictamente creciente.
+    /// Index of the presented frame, strictly increasing.
     pub n: u64,
     pub t_render_ms: f64,
     pub t_present_ms: f64,
@@ -85,16 +85,16 @@ pub struct FrameRecord {
     pub vram_used_mb: u32,
     pub vram_free_mb: u32,
     pub level: Level,
-    /// Porcentaje de pantalla donde la máscara cayó a repetir (0 a 100).
+    /// Percentage of the screen where the mask fell back to repeating (0 to 100).
     pub repeat_pct: f32,
-    /// Solo si hay verdad disponible (0 a 1).
+    /// Only if ground truth is available (0 to 1).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ssim: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub psnr: Option<f32>,
 }
 
-/// Tipo de evento puntual.
+/// Type of point event.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EventKind {
@@ -102,35 +102,35 @@ pub enum EventKind {
     SceneCut,
     FrameSpike,
     VramLow,
-    /// Marca manual del usuario: "aquí vi un artefacto".
+    /// Manual mark by the user: "I saw an artifact here".
     UserMark,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EventRecord {
-    /// Fotograma asociado.
+    /// Associated frame.
     pub n: u64,
     pub event: EventKind,
     pub detail: serde_json::Value,
 }
 
-/// Uno por escena, al cerrar. Debe ser la última línea.
+/// One per scene, on close. Must be the last line.
 ///
-/// `p1_ms` y `p01_ms` son los tiempos de fotograma en el percentil 99 y 99.9
-/// (el 1 % y el 0.1 % más lentos). Se calculan con el método del rango más
-/// cercano sobre los intervalos entre fotogramas presentados.
+/// `p1_ms` and `p01_ms` are the frame times at the 99th and 99.9th percentile
+/// (the slowest 1 % and 0.1 %). They are computed with the nearest-rank method
+/// over the intervals between presented frames.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SummaryRecord {
     pub fps_rendered_avg: f64,
     pub fps_presented_avg: f64,
     pub p1_ms: f64,
     pub p01_ms: f64,
-    /// Latencia añadida estimada, en ms. Ausente si no se pudo estimar
-    /// (por ejemplo, en el `selftest` sintético): nunca se rellena con un 0 falso.
+    /// Estimated added latency, in ms. Absent if it could not be estimated
+    /// (for example, in the synthetic `selftest`): never filled with a fake 0.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub latency_est_ms: Option<f64>,
     pub overhead_ms_avg: f64,
-    /// Porcentaje de fotogramas presentados en cada nivel; claves `"0"` a `"3"`.
+    /// Percentage of presented frames at each level; keys `"0"` a `"3"`.
     pub level_time_pct: BTreeMap<String, f64>,
 }
 
@@ -147,7 +147,7 @@ mod tests {
             Record::Event(EventRecord {
                 n: 7,
                 event: EventKind::UserMark,
-                detail: serde_json::json!({"note": "halo en el HUD"}),
+                detail: serde_json::json!({"note": "halo on the HUD"}),
             }),
             Record::Summary(fixtures::summary()),
         ];
@@ -167,11 +167,11 @@ mod tests {
         assert_eq!(value["type"], "frame");
         assert_eq!(value["n"], 3);
         assert_eq!(value["kind"], "rendered");
-        assert_eq!(value["level"], 1, "el nivel se escribe como entero");
+        assert_eq!(value["level"], 1, "the level is written as an integer");
         assert!(value["pass_ms"]["motion"].is_number());
         assert!(
             value.get("ssim").is_none(),
-            "los opcionales vacíos no se escriben"
+            "empty optionals are not written"
         );
     }
 

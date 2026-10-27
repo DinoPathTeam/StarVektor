@@ -1,10 +1,10 @@
-//! Resolución de la configuración efectiva para un juego.
+//! Resolution of the effective configuration for a game.
 
 use sv_types::Level;
 
 use crate::model::{Config, HookMode};
 
-/// Lo que realmente se aplica a un juego: global más el perfil, si existe.
+/// What is actually applied to a game: global plus the profile, if one exists.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effective {
     pub enabled: bool,
@@ -14,9 +14,9 @@ pub struct Effective {
 }
 
 impl Config {
-    /// Combina los ajustes globales con el perfil de `game`.
+    /// Combines the global settings with the profile of `game`.
     ///
-    /// La búsqueda es por nombre exacto. Sin perfil, se usa lo global.
+    /// Lookup is by exact name. Without a profile, the global values are used.
     #[must_use]
     pub fn effective(&self, game: &str) -> Effective {
         let profile = self.profiles.get(game);
@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn without_profile_uses_globals() {
         let cfg = Config::default();
-        let e = cfg.effective("cualquiera");
+        let e = cfg.effective("anything");
         assert!(e.enabled);
         assert_eq!(e.max_level, Level::FullNet);
         assert!((e.budget_fraction - 0.12).abs() < f64::EPSILON);

@@ -1,15 +1,15 @@
-//! Contrato de inferencia y selección de modelo.
+//! Inference contract and model selection.
 //!
-//! Igual que con la parte gráfica, aquí solo vive la interfaz. Los backends
-//! concretos (unidades de IA de AMD o NVIDIA, shaders genéricos para GPUs
-//! antiguas, ONNX) irán en crates aparte, y todos los modelos se describen con
-//! [`ModelSpec`]. La selección es una función pura: no toca la GPU.
+//! As with the graphics side, only the interface lives here. Concrete
+//! backends (AMD or NVIDIA AI units, generic shaders for older GPUs,
+//! ONNX) will go in separate crates, and all models are described with
+//! [`ModelSpec`]. Selection is a pure function: it does not touch the GPU.
 
 use std::fmt;
 
 use sv_types::Level;
 
-/// Familia de tamaños de modelo (se obtienen por destilación del grande).
+/// Family of model sizes (obtained by distillation from the large one).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ModelTier {
     Minimal,
@@ -18,7 +18,7 @@ pub enum ModelTier {
 }
 
 impl ModelTier {
-    /// Nivel del regulador en el que se usa este tamaño.
+    /// Regulator level at which this size is used.
     #[must_use]
     pub fn level(self) -> Level {
         match self {
@@ -28,25 +28,25 @@ impl ModelTier {
     }
 }
 
-/// Descripción de un modelo disponible.
+/// Description of an available model.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ModelSpec {
     pub id: String,
-    /// Hash del contenido (queda en el log: `run.model_hash`).
+    /// Content hash (recorded in the log: `run.model_hash`).
     pub hash: String,
     pub tier: ModelTier,
-    /// Tiempo de inferencia medido en el hardware actual, en ms.
+    /// Inference time measured on the current hardware, in ms.
     pub est_ms: f32,
-    /// VRAM que ocupa con sus activaciones, en MB.
+    /// VRAM it occupies with its activations, in MB.
     pub est_vram_mb: u32,
 }
 
-/// Elige el modelo más grande que cabe en el presupuesto.
+/// Picks the largest model that fits the budget.
 ///
-/// `budget_ms` es el tiempo que queda para la inferencia y `vram_available_mb`
-/// la memoria que se le puede dedicar (quien llama ya restó el umbral de
-/// seguridad). A igual tamaño gana el más rápido. `None` si ninguno cabe: el
-/// regulador debe quedarse en nivel 1 (clásico).
+/// `budget_ms` is the time left for inference and `vram_available_mb` is the
+/// memory that can be dedicated to it (the caller has already subtracted the
+/// safety threshold). At equal size the faster one wins. `None` if none fits:
+/// the regulator must stay at level 1 (classic).
 #[must_use]
 pub fn select_model(
     models: &[ModelSpec],
@@ -59,7 +59,7 @@ pub fn select_model(
         .max_by(|a, b| a.tier.cmp(&b.tier).then(b.est_ms.total_cmp(&a.est_ms)))
 }
 
-/// Error de un backend de inferencia.
+/// Inference backend error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InferenceError {
     Unsupported(String),
@@ -69,35 +69,35 @@ pub enum InferenceError {
 impl fmt::Display for InferenceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            InferenceError::Unsupported(what) => write!(f, "no soportado: {what}"),
-            InferenceError::LoadFailed(what) => write!(f, "no se pudo cargar el modelo: {what}"),
+            InferenceError::Unsupported(what) => write!(f, "unsupported: {what}"),
+            InferenceError::LoadFailed(what) => write!(f, "could not load the model: {what}"),
         }
     }
 }
 
 impl std::error::Error for InferenceError {}
 
-/// Lo que se le pide a un backend de inferencia.
+/// What is asked of an inference backend.
 pub trait InferenceBackend {
     fn name(&self) -> &'static str;
 
-    /// Si el hardware tiene unidades de IA aceleradas (tensor cores, WMMA, NPU).
+    /// Whether the hardware has accelerated AI units (tensor cores, WMMA, NPU).
     fn has_ai_acceleration(&self) -> bool;
 
-    /// Carga un modelo, descargando el anterior.
+    /// Loads a model, unloading the previous one.
     ///
     /// # Errors
-    /// Si el modelo no es compatible o falla la carga.
+    /// If the model is not compatible or loading fails.
     fn load(&mut self, model: &ModelSpec) -> Result<(), InferenceError>;
 
-    /// Libera el modelo cargado.
+    /// Releases the loaded model.
     fn unload(&mut self);
 
-    /// Modelo cargado ahora mismo, si lo hay.
+    /// Currently loaded model, if any.
     fn loaded(&self) -> Option<&ModelSpec>;
 }
 
-/// Backend sin inferencia real: solo recuerda qué modelo se cargó.
+/// Backend with no real inference: it only remembers which model was loaded.
 #[derive(Debug, Default)]
 pub struct NullInference {
     loaded: Option<ModelSpec>,
@@ -155,12 +155,12 @@ mod tests {
         assert_eq!(
             select_model(&models, 2.0, 300).unwrap().id,
             "med",
-            "no cabe el grande en tiempo"
+            "the large one does not fit in time"
         );
         assert_eq!(
             select_model(&models, 3.0, 100).unwrap().id,
             "med",
-            "no cabe el grande en memoria"
+            "the large one does not fit in memory"
         );
         assert_eq!(select_model(&models, 0.5, 300).unwrap().id, "min");
     }
@@ -177,9 +177,9 @@ mod tests {
     fn ties_go_to_the_faster_model() {
         let models = vec![
             spec("lento", ModelTier::Medium, 1.5, 80),
-            spec("rapido", ModelTier::Medium, 1.0, 80),
+            spec("fast", ModelTier::Medium, 1.0, 80),
         ];
-        assert_eq!(select_model(&models, 3.0, 300).unwrap().id, "rapido");
+        assert_eq!(select_model(&models, 3.0, 300).unwrap().id, "fast");
     }
 
     #[test]

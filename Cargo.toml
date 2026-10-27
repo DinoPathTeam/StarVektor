@@ -6,10 +6,12 @@ members = ["crates/*"]
 version = "0.0.1"
 edition = "2024"
 publish = false
+authors = ["DinoPathTeam"]
+repository = "https://github.com/DinoPathTeam/StarVektor"
 
-# Las versiones viven aquí; cada crate declara solo lo que usa (`workspace = true`).
-# Qué crate puede depender de cuál lo fija `architecture/layers.toml` y lo verifica
-# `scripts/check_layers.py` (también en CI).
+# Versions live here; each crate declares only what it uses (`workspace = true`).
+# Which crate may depend on which is set by `architecture/layers.toml` and checked
+# by `scripts/check_layers.py` (also in CI).
 [workspace.dependencies]
 sv-types = { path = "crates/sv-types" }
 sv-core = { path = "crates/sv-core" }
@@ -28,8 +30,8 @@ clap = { version = "4", features = ["derive"] }
 ratatui = "0.30"
 
 [workspace.lints.rust]
-# Por defecto nada es `unsafe`. Los crates de FFI (shim C++, capa Vulkan) que lo
-# necesiten lo declararán en su propio Cargo.toml, y eso se verá en la revisión.
+# Nothing is `unsafe` by default. FFI crates (C++ shim, Vulkan layer) that need it
+# will declare it in their own Cargo.toml, and that will be visible in review.
 unsafe_code = "forbid"
 
 [workspace.lints.clippy]

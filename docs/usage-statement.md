@@ -1,60 +1,60 @@
-# Declaración de uso
+# Usage statement
 
-> **Etapa temprana.** StarVektor está en desarrollo y su código es incompleto. Lo que sigue describe el diseño al que el proyecto se compromete, no un comportamiento ya implementado: hoy el programa no se engancha a ningún juego. Cualquier copia del código es parcial.
+> **Early stage.** StarVektor is under development and its code is incomplete. What follows describes the design the project commits to, not behavior that is already implemented: today the program does not hook into any game. Any copy of the code is partial.
 
-Este documento describe, en términos de **actos concretos**, qué hace StarVektor sobre los juegos y qué no hace. No es asesoría legal: es la descripción técnica que el proyecto se compromete a respetar. Si el comportamiento del programa cambia, este documento se actualiza antes que el código.
+This document describes, in terms of **concrete acts**, what StarVektor does to games and what it does not do. It is not legal advice: it is the technical description the project commits to respect. If the program's behavior changes, this document is updated before the code.
 
-## Qué es
+## What it is
 
-Software libre (licencia MIT prevista) que mejora la fluidez de presentación en monitores sin VRR generando fotogramas propios. Imita una función de la **pantalla** (la frecuencia variable), no una función de ningún juego.
+Free software (MIT license planned) that improves presentation smoothness on monitors without VRR by generating its own frames. It imitates a function of the **display** (variable refresh rate), not a function of any game.
 
-## Alcance
+## Scope
 
-- Juegos de **un solo jugador y sin conexión**.
-- No se usa en juegos online ni en juegos con anticheat. En ellos StarVektor se apaga por defecto (lista de exclusión, hito H1.7 del [roadmap](roadmap.md)) y nunca se prueba en cuentas online.
-- Las pruebas de comparación se hacen solo con juegos de un jugador, con las condiciones de [publisher-review.md](publisher-review.md).
+- **Single-player, offline** games.
+- It is not used in online games or in games with anti-cheat. In them StarVektor is off by default (exclusion list, milestone H1.7 of the [roadmap](roadmap.md)) and is never tested on online accounts.
+- Comparison tests are run only with single-player games, under the conditions in [publisher-review.md](publisher-review.md).
 
-## Qué hace
+## What it does
 
-1. Observa la imagen que el sistema ya presenta, mediante las interfaces públicas del sistema (Vulkan, Wayland/X11 en Linux).
-2. Genera fotogramas propios a partir de esa imagen.
-3. Mide sus propios tiempos (tiempo de fotograma, costo por pasada, memoria de vídeo) y compara numéricamente el resultado con una referencia.
-4. Procesa la imagen en memoria y la descarta. De los juegos comerciales solo se conservan **métricas numéricas**; ningún fotograma.
+1. Observes the image the system already presents, through the system's public interfaces (Vulkan, Wayland/X11 on Linux).
+2. Generates its own frames from that image.
+3. Measures its own timings (frame time, cost per pass, video memory) and numerically compares the result against a reference.
+4. Processes the image in memory and discards it. From commercial games only **numerical metrics** are kept; no frame.
 
-## Qué no hace
+## What it does not do
 
-- No lee ni escribe la memoria del proceso del juego.
-- No modifica ni parchea binarios, bibliotecas ni archivos del juego, y no lee sus archivos de datos.
-- No extrae ni copia assets, modelos, texturas, audio ni texto.
-- No intercepta ni emula tráfico de red ni protocolos del juego.
-- No elude, desactiva ni interfiere con protecciones (DRM, anticheat, control de acceso).
-- No automatiza el juego ni da ventaja de ningún tipo en partidas.
-- No usa juegos comerciales para entrenar modelos (ver [data-policy.md](data-policy.md)).
-- No usa la salida de otros generadores de fotogramas como objetivo de entrenamiento.
-- No entrena ni ajusta ningún modelo con imágenes de juegos de terceros, tampoco en el equipo del usuario. Lo que se conserva son métricas numéricas y las marcas que el usuario hace a mano, sin imágenes.
-- No tiene fin comercial: el software es gratuito.
+- It does not read or write the memory of the game process.
+- It does not modify or patch the game's binaries, libraries or files, and does not read its data files.
+- It does not extract or copy assets, models, textures, audio or text.
+- It does not intercept or emulate the game's network traffic or protocols.
+- It does not bypass, disable or interfere with protections (DRM, anti-cheat, access control).
+- It does not automate the game or give an advantage of any kind in matches.
+- It does not use commercial games to train models (see [data-policy.md](data-policy.md)).
+- It does not use the output of other frame generators as a training target.
+- It does not train or fine-tune any model on images from third-party games, not even on the user's machine. What is kept are numerical metrics and the marks the user makes by hand, without images.
+- It has no commercial purpose: the software is free.
 
-## Niveles de integración
+## Integration levels
 
-| Nivel (`integration_level`) | Qué usa | Sobre juegos de terceros |
+| Level (`integration_level`) | What it uses | On third-party games |
 |---|---|---|
-| `image_only` | Solo la imagen presentada | Permitido, es el modo de caja negra |
-| `upscaler` | Datos que el juego entrega a su escalador (profundidad, vectores de movimiento), interceptando la API pública | No se usa sin permiso del titular. Reservado para integración hecha por el propio desarrollador |
-| `engine` | Datos del motor, mediante el SDK | Solo cuando el desarrollador del juego lo integra en su propio motor |
+| `image_only` | Only the presented image | Allowed; this is the black-box mode |
+| `upscaler` | Data the game hands to its upscaler (depth, motion vectors), by intercepting the public API | Not used without the rights holder's permission. Reserved for integration done by the game's own developer |
+| `engine` | Engine data, through the SDK | Only when the game's developer integrates it into their own engine |
 
-Cuando un desarrollador integra el SDK en su juego, StarVektor deja de ser software de terceros para ese juego y casi todas las restricciones sobre programas externos dejan de aplicar.
+When a developer integrates the SDK into their game, StarVektor stops being third-party software for that game and almost all restrictions on external programs no longer apply.
 
-## Huella de cada enganche
+## Footprint of each hook
 
-La decisión entre capa Vulkan y gamescope (D2 en [design.md](design.md)) incluye medir la **huella**: si el código corre dentro del proceso del juego y a qué datos accede. Los resultados se registrarán aquí. Observación: gamescope también instala una capa Vulkan dentro del juego, así que "fuera del proceso" describe solo nuestro código.
+The decision between a Vulkan layer and gamescope (D2 in [design.md](design.md)) includes measuring the **footprint**: whether the code runs inside the game process and what data it accesses. The results will be recorded here. Note: gamescope also installs a Vulkan layer inside the game, so "outside the process" describes only our code.
 
-| Enganche | Corre en el proceso del juego | Datos a los que accede | Estado |
+| Hook | Runs in the game process | Data it accesses | Status |
 |---|---|---|---|
-| Capa Vulkan propia (modo solo observación) | Sí | Imagen presentada y tiempos de presentación | Por medir (H1.4) |
-| Gamescope | Nuestro código, no | Imagen final del compositor | Por medir (H1.5) |
+| Own Vulkan layer (observation-only mode) | Yes | Presented image and presentation timings | To be measured (H1.4) |
+| Gamescope | Our code, no | Final image from the compositor | To be measured (H1.5) |
 
-## Para estudios y editores
+## For studios and publishers
 
-- StarVektor es gratuito y de código abierto. Un estudio puede integrarlo en su propio motor o usarlo internamente en desarrollo, sin coste.
-- Si un titular de derechos nos pide dejar de usar su juego en las comparaciones o retirar una mención, se atiende.
-- Para proponer una colaboración o un permiso de comparación, abre una propuesta en el repositorio.
+- StarVektor is free and open source. A studio can integrate it into its own engine or use it internally during development, at no cost.
+- If a rights holder asks us to stop using their game in comparisons or to remove a mention, we will comply.
+- To propose a collaboration or a comparison permission, open an issue in the repository.

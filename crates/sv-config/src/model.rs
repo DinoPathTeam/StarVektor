@@ -1,26 +1,26 @@
-//! Modelo de la configuración y valores por defecto.
+//! Configuration model and default values.
 //!
-//! Los valores numéricos por defecto son las hipótesis iniciales de la hoja de
-//! prototipo; se ajustan con las mediciones de la fase 1.
+//! The default numeric values are the initial hypotheses from the prototype
+//! sheet; they are tuned with the Phase 1 measurements.
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use sv_types::Level;
 
-/// Versión del formato del archivo de configuración.
+/// Version of the configuration file format.
 pub const CONFIG_VERSION: u32 = 1;
 
-/// Cómo se engancha StarVektor al juego (decisión D2, pendiente de medición).
+/// How StarVektor hooks into the game (decision D2, pending measurement).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HookMode {
-    /// Elige la opción que haya ganado la medición (fase 1).
+    /// Picks the option that won the measurement (Phase 1).
     #[default]
     Auto,
-    /// Capa Vulkan implícita.
+    /// Implicit Vulkan layer.
     Vulkan,
-    /// Dentro de gamescope.
+    /// Inside gamescope.
     Gamescope,
 }
 
@@ -45,7 +45,7 @@ pub struct Config {
     pub regulator: RegulatorSettings,
     pub hook: HookSettings,
     pub telemetry: TelemetrySettings,
-    /// Ajustes por juego; la clave es el nombre del juego (ver `Config::effective`).
+    /// Per-game settings; the key is the game name (see `Config::effective`).
     pub profiles: BTreeMap<String, Profile>,
 }
 
@@ -65,7 +65,7 @@ impl Default for Config {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct General {
-    /// Interruptor general: apagado, StarVektor deja pasar todo.
+    /// Master switch: when off, StarVektor lets everything through.
     pub enabled: bool,
 }
 
@@ -78,21 +78,21 @@ impl Default for General {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct RegulatorSettings {
-    /// Nivel máximo permitido (0 a 3).
+    /// Maximum allowed level (0 to 3).
     pub max_level: Level,
-    /// Fracción del tiempo base que StarVektor puede gastar.
+    /// Fraction of the base frame time StarVektor may spend.
     pub budget_fraction: f64,
-    /// VRAM libre mínima, en MB.
+    /// Minimum free VRAM, in MB.
     pub vram_floor_mb: u32,
-    /// VRAM libre extra sobre el mínimo para poder subir de nivel, en MB.
+    /// Extra free VRAM above the minimum to be able to rise a level, in MB.
     pub vram_margin_mb: u32,
-    /// Holgura exigida para subir (fracción del presupuesto).
+    /// Headroom required to rise (fraction of the budget).
     pub up_margin: f64,
-    /// Muestras malas seguidas antes de bajar de nivel.
+    /// Consecutive bad samples before dropping a level.
     pub panic_frames: u32,
-    /// Muestras buenas seguidas antes de subir de nivel.
+    /// Consecutive good samples before rising a level.
     pub settle_frames: u32,
-    /// Multiplicador máximo de espera tras bajadas forzadas.
+    /// Maximum wait multiplier after forced drops.
     pub max_backoff: u32,
 }
 
@@ -120,14 +120,14 @@ pub struct HookSettings {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TelemetrySettings {
-    /// Escribir el log JSONL de cada ejecución.
+    /// Write the JSONL log of each run.
     pub enabled: bool,
-    /// Directorio de logs; si falta, `$XDG_STATE_HOME/starvektor/logs`.
+    /// Log directory; if missing, `$XDG_STATE_HOME/starvektor/logs`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dir: Option<String>,
-    /// Mostrar el overlay mínimo (frame time, nivel, marcas).
+    /// Show the minimal overlay (frame time, level, marks).
     pub overlay: bool,
-    /// Tecla que registra un `user_mark` ("aquí vi un artefacto").
+    /// Key that records a `user_mark` ("I saw an artifact here").
     pub mark_key: String,
 }
 
@@ -142,7 +142,7 @@ impl Default for TelemetrySettings {
     }
 }
 
-/// Sobrescrituras para un juego. Lo que no se indica hereda lo global.
+/// Overrides for one game. Anything not set inherits the global value.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Profile {

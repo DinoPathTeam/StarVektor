@@ -1,60 +1,60 @@
-//! Contrato del backend gráfico.
+//! Graphics backend contract.
 //!
-//! Este crate solo define **qué** necesita StarVektor de la GPU; **cómo** se
-//! obtiene vive en crates aparte (por ejemplo, un futuro `sv-gfx-vulkan` con
-//! `ash`), de modo que añadir o cambiar una API gráfica no toca el núcleo ni
-//! este contrato.
+//! This crate only defines **what** StarVektor needs from the GPU; **how** it is
+//! obtained lives in separate crates (for example, a future `sv-gfx-vulkan` with
+//! `ash`), so adding or changing a graphics API touches neither the core nor
+//! this contract.
 //!
-//! Los píxeles no pasan por aquí: las capas se intercambian identificadores
-//! (`FrameHandle`) y cada backend resuelve el recurso real.
+//! Pixels do not pass through here: layers exchange identifiers
+//! (`FrameHandle`) and each backend resolves the real resource.
 
 use std::fmt;
 
 use sv_types::{MemoryBudget, PassTimings};
 
-/// Error de un backend gráfico.
+/// Graphics backend error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GfxError {
-    /// La API o la extensión necesaria no está disponible.
+    /// The required API or extension is not available.
     Unavailable(String),
-    /// Falló el dispositivo (pérdida de contexto, memoria agotada, etc.).
+    /// The device failed (context loss, out of memory, etc.).
     Device(String),
 }
 
 impl fmt::Display for GfxError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            GfxError::Unavailable(what) => write!(f, "no disponible: {what}"),
-            GfxError::Device(what) => write!(f, "error del dispositivo: {what}"),
+            GfxError::Unavailable(what) => write!(f, "unavailable: {what}"),
+            GfxError::Device(what) => write!(f, "device error: {what}"),
         }
     }
 }
 
 impl std::error::Error for GfxError {}
 
-/// Lo que StarVektor necesita saber de la GPU en cada fotograma.
+/// What StarVektor needs to know about the GPU on every frame.
 pub trait GraphicsBackend {
-    /// Nombre corto para el log (`"vulkan"`, `"null"`).
+    /// Short name for the log (`"vulkan"`, `"null"`).
     fn name(&self) -> &'static str;
 
-    /// Memoria de vídeo usada y libre (con Vulkan, `VK_EXT_memory_budget`).
+    /// Used and free video memory (with Vulkan, `VK_EXT_memory_budget`).
     ///
     /// # Errors
-    /// Si el backend no puede consultar la memoria.
+    /// If the backend cannot query memory.
     fn memory_budget(&mut self) -> Result<MemoryBudget, GfxError>;
 
-    /// Milisegundos por pasada del último fotograma procesado, medidos en la
-    /// GPU con timestamp queries (no con el reloj del programa).
+    /// Milliseconds per pass of the last processed frame, measured on the
+    /// GPU with timestamp queries (not with the program's clock).
     ///
     /// # Errors
-    /// Si el backend no puede leer los contadores.
+    /// If the backend cannot read the counters.
     fn last_pass_timings(&mut self) -> Result<PassTimings, GfxError>;
 }
 
-/// Backend sin GPU: devuelve valores fijados por quien lo usa.
+/// GPU-less backend: returns values set by whoever uses it.
 ///
-/// Sirve para probar el resto del sistema (regulador, telemetría, TUI) sin
-/// hardware y para el `selftest` del ejecutable.
+/// It is used to test the rest of the system (regulator, telemetry, TUI) without
+/// hardware and for the executable's `selftest`.
 #[derive(Debug, Clone, Default)]
 pub struct NullBackend {
     memory: MemoryBudget,

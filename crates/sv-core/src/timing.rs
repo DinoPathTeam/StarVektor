@@ -1,9 +1,9 @@
-//! Predictor del tiempo de fotograma (hito H2.1, versión inicial).
+//! Frame-time predictor (milestone H2.1, initial version).
 //!
-//! Media y varianza móviles con decaimiento exponencial. Es la línea base: si
-//! un predictor más fino no la supera en las mediciones, no se justifica.
+//! Moving mean and variance with exponential decay. It is the baseline: if a
+//! finer predictor does not beat it in measurements, it is not justified.
 
-/// Estimador exponencial de la media y la dispersión del tiempo de fotograma.
+/// Exponential estimator of the mean and spread of the frame time.
 #[derive(Debug, Clone)]
 pub struct FrameTimePredictor {
     alpha: f64,
@@ -13,13 +13,13 @@ pub struct FrameTimePredictor {
 }
 
 impl FrameTimePredictor {
-    /// `alpha` en (0, 1]: peso de la muestra nueva. Valores bajos suavizan más.
+    /// `alpha` in (0, 1]: weight of the new sample. Lower values smooth more.
     ///
     /// # Panics
-    /// Si `alpha` está fuera de (0, 1].
+    /// If `alpha` is outside (0, 1].
     #[must_use]
     pub fn new(alpha: f64) -> Self {
-        assert!(alpha > 0.0 && alpha <= 1.0, "alpha debe estar en (0, 1]");
+        assert!(alpha > 0.0 && alpha <= 1.0, "alpha must be in (0, 1]");
         Self {
             alpha,
             mean: 0.0,
@@ -28,7 +28,7 @@ impl FrameTimePredictor {
         }
     }
 
-    /// Incorpora el tiempo de un fotograma, en ms. Ignora valores no finitos o negativos.
+    /// Adds a frame time, in ms. Ignores non-finite or negative values.
     pub fn observe(&mut self, frame_ms: f64) {
         if !frame_ms.is_finite() || frame_ms < 0.0 {
             return;
@@ -45,13 +45,13 @@ impl FrameTimePredictor {
         self.samples += 1;
     }
 
-    /// Tiempo esperado del próximo fotograma, en ms. `None` sin muestras.
+    /// Expected time of the next frame, in ms. `None` with no samples.
     #[must_use]
     pub fn predict_ms(&self) -> Option<f64> {
         (self.samples > 0).then_some(self.mean)
     }
 
-    /// Desviación típica estimada, en ms.
+    /// Estimated standard deviation, in ms.
     #[must_use]
     pub fn jitter_ms(&self) -> f64 {
         self.var.max(0.0).sqrt()

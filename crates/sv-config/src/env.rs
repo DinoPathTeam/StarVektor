@@ -1,14 +1,14 @@
-//! Sobrescrituras desde variables de entorno.
+//! Overrides from environment variables.
 //!
-//! Permiten ajustar sin tocar el archivo, por ejemplo en la opción de
-//! lanzamiento de Steam: `STARVEKTOR_MAX_LEVEL=1 %command%`.
+//! They allow tuning without touching the file, for example in Steam's
+//! launch option: `STARVEKTOR_MAX_LEVEL=1 %command%`.
 //!
-//! | Variable | Valores |
+//! | Variable | Values |
 //! | --- | --- |
 //! | `STARVEKTOR_ENABLED` | `1`/`0`, `true`/`false`, `on`/`off` |
-//! | `STARVEKTOR_MAX_LEVEL` | `0` a `3` |
+//! | `STARVEKTOR_MAX_LEVEL` | `0` to `3` |
 //! | `STARVEKTOR_HOOK` | `auto`, `vulkan`, `gamescope` |
-//! | `STARVEKTOR_BUDGET_FRACTION` | número en (0, 0.5] |
+//! | `STARVEKTOR_BUDGET_FRACTION` | number in (0, 0.5] |
 
 use sv_types::Level;
 
@@ -17,10 +17,10 @@ use crate::io::EnvGet;
 use crate::model::{Config, HookMode};
 
 impl Config {
-    /// Aplica las variables presentes y revalida el resultado.
+    /// Applies the variables present and revalidates the result.
     ///
     /// # Errors
-    /// Si una variable tiene un valor que no se entiende, o el resultado queda fuera de rango.
+    /// If a variable has a value that is not understood, or the result is out of range.
     pub fn apply_env(&mut self, get: EnvGet<'_>) -> Result<(), ConfigError> {
         if let Some(value) = get("STARVEKTOR_ENABLED") {
             self.general.enabled = parse_bool("STARVEKTOR_ENABLED", &value)?;
@@ -29,7 +29,7 @@ impl Config {
             let number: u8 = value
                 .trim()
                 .parse()
-                .map_err(|_| env_err("STARVEKTOR_MAX_LEVEL", "se esperaba 0 a 3"))?;
+                .map_err(|_| env_err("STARVEKTOR_MAX_LEVEL", "expected 0 to 3"))?;
             self.regulator.max_level = Level::try_from(number)
                 .map_err(|e| env_err("STARVEKTOR_MAX_LEVEL", &e.to_string()))?;
         }
@@ -37,16 +37,11 @@ impl Config {
             self.hook.mode = HookMode::ALL
                 .into_iter()
                 .find(|mode| mode.as_str() == value.trim().to_lowercase())
-                .ok_or_else(|| {
-                    env_err("STARVEKTOR_HOOK", "se esperaba auto, vulkan o gamescope")
-                })?;
+                .ok_or_else(|| env_err("STARVEKTOR_HOOK", "expected auto, vulkan or gamescope"))?;
         }
         if let Some(value) = get("STARVEKTOR_BUDGET_FRACTION") {
             self.regulator.budget_fraction = value.trim().parse().map_err(|_| {
-                env_err(
-                    "STARVEKTOR_BUDGET_FRACTION",
-                    "se esperaba un número, p. ej. 0.12",
-                )
+                env_err("STARVEKTOR_BUDGET_FRACTION", "expected a number, e.g. 0.12")
             })?;
         }
 
@@ -70,7 +65,7 @@ fn parse_bool(var: &'static str, value: &str) -> Result<bool, ConfigError> {
     match value.trim().to_lowercase().as_str() {
         "1" | "true" | "on" | "yes" => Ok(true),
         "0" | "false" | "off" | "no" => Ok(false),
-        _ => Err(env_err(var, "se esperaba 1/0, true/false u on/off")),
+        _ => Err(env_err(var, "expected 1/0, true/false or on/off")),
     }
 }
 
@@ -113,11 +108,11 @@ mod tests {
     #[test]
     fn bad_values_name_the_variable() {
         for (var, value) in [
-            ("STARVEKTOR_ENABLED", "quizá"),
+            ("STARVEKTOR_ENABLED", "maybe"),
             ("STARVEKTOR_MAX_LEVEL", "7"),
-            ("STARVEKTOR_MAX_LEVEL", "alto"),
+            ("STARVEKTOR_MAX_LEVEL", "high"),
             ("STARVEKTOR_HOOK", "directx"),
-            ("STARVEKTOR_BUDGET_FRACTION", "mucho"),
+            ("STARVEKTOR_BUDGET_FRACTION", "lots"),
         ] {
             let err = apply(&[(var, value)]).unwrap_err();
             assert!(err.to_string().contains(var), "{var}={value}: {err}");

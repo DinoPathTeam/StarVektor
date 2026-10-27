@@ -1,4 +1,4 @@
-//! Dibujo de la TUI. Solo lee el estado de [`App`]; no lo modifica.
+//! TUI drawing. It only reads the state of [`App`]; it does not modify it.
 
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout};
@@ -8,7 +8,7 @@ use ratatui::widgets::{Block, List, ListItem, ListState, Paragraph, Wrap};
 
 use crate::app::{App, Field, Status};
 
-/// Ancho de la columna de etiquetas.
+/// Width of the label column.
 const LABEL_WIDTH: usize = 32;
 
 pub fn render(frame: &mut Frame, app: &App) {
@@ -23,7 +23,7 @@ pub fn render(frame: &mut Frame, app: &App) {
     let dirty_mark = if app.is_dirty() { " *" } else { "" };
     let title = Paragraph::new(Line::from(vec![
         Span::styled("StarVektor", Style::new().add_modifier(Modifier::BOLD)),
-        Span::raw(" · configuración"),
+        Span::raw(" · configuration"),
         Span::styled(dirty_mark, Style::new().fg(Color::Yellow)),
     ]))
     .block(Block::bordered().title(app.path().display().to_string()));
@@ -39,7 +39,7 @@ pub fn render(frame: &mut Frame, app: &App) {
         })
         .collect();
     let list = List::new(items)
-        .block(Block::bordered().title("Ajustes"))
+        .block(Block::bordered().title("Settings"))
         .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
         .highlight_symbol("▶ ");
     let mut state = ListState::default().with_selected(Some(app.selected()));
@@ -47,19 +47,19 @@ pub fn render(frame: &mut Frame, app: &App) {
 
     let explanation = Paragraph::new(app.selected_field().help())
         .wrap(Wrap { trim: true })
-        .block(Block::bordered().title("Qué hace"));
+        .block(Block::bordered().title("What it does"));
     frame.render_widget(explanation, help);
 
-    let keys = "↑↓ mover · ←→ cambiar · espacio alterna · s guardar · r recargar · q salir";
+    let keys = "↑↓ move · ←→ change · space toggles · s save · r reload · q quit";
     let (status_text, status_style) = match app.status() {
         Status::None => (String::new(), Style::new()),
-        Status::Saved => ("Guardado.".to_owned(), Style::new().fg(Color::Green)),
+        Status::Saved => ("Saved.".to_owned(), Style::new().fg(Color::Green)),
         Status::Reloaded => (
-            "Recargado desde el archivo.".to_owned(),
+            "Reloaded from the file.".to_owned(),
             Style::new().fg(Color::Green),
         ),
         Status::ConfirmQuit => (
-            "Hay cambios sin guardar: q otra vez sale sin guardar, s guarda.".to_owned(),
+            "Unsaved changes: q again quits without saving, s saves.".to_owned(),
             Style::new().fg(Color::Yellow),
         ),
         Status::Error(message) => (format!("Error: {message}"), Style::new().fg(Color::Red)),
@@ -109,16 +109,13 @@ mod tests {
         for field in Field::ALL {
             assert!(
                 text.contains(field.label()),
-                "falta {:?}\n{text}",
+                "missing {:?}\n{text}",
                 field.label()
             );
         }
-        assert!(text.contains("3 · red completa"), "{text}");
+        assert!(text.contains("3 · full network"), "{text}");
         assert!(text.contains("12 %"), "{text}");
-        assert!(
-            text.contains("config.toml"),
-            "muestra la ruta del archivo\n{text}"
-        );
+        assert!(text.contains("config.toml"), "shows the file path\n{text}");
     }
 
     #[test]
@@ -126,18 +123,18 @@ mod tests {
         let mut app = app();
         app.select(1);
         let text = draw(&app, 90, 24);
-        assert!(text.contains("▶ Nivel máximo"), "{text}");
-        assert!(text.contains("Tope del regulador"), "{text}");
+        assert!(text.contains("▶ Maximum level"), "{text}");
+        assert!(text.contains("Regulator cap"), "{text}");
     }
 
     #[test]
     fn shows_the_unsaved_marker_and_the_confirmation() {
         let mut app = app();
-        assert!(!draw(&app, 90, 24).contains("configuración *"));
+        assert!(!draw(&app, 90, 24).contains("configuration *"));
         app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
-        assert!(draw(&app, 90, 24).contains("configuración *"));
+        assert!(draw(&app, 90, 24).contains("configuration *"));
         app.handle_key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE));
-        assert!(draw(&app, 90, 24).contains("cambios sin guardar"));
+        assert!(draw(&app, 90, 24).contains("Unsaved changes"));
     }
 
     #[test]

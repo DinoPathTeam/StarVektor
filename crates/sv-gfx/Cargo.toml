@@ -1,9 +1,11 @@
 [package]
 name = "sv-gfx"
-description = "Contrato del backend gráfico (Vulkan, etc.) y una implementación nula para pruebas"
+description = "Graphics backend contract (Vulkan, etc.) and a null implementation for tests"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

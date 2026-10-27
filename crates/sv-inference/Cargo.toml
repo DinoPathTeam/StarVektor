@@ -1,9 +1,11 @@
 [package]
 name = "sv-inference"
-description = "Contrato del backend de inferencia y selección de modelo por presupuesto de ms y VRAM"
+description = "Inference backend contract and model selection by ms and VRAM budget"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 sv-types.workspace = true

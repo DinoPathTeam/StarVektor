@@ -1,13 +1,13 @@
-//! TUI de configuración (decisión D3, hito H0.4).
+//! Configuration TUI (decision D3, milestone H0.4).
 //!
-//! La TUI no guarda nada propio: edita el archivo TOML de `sv-config`, que es
-//! la única fuente de verdad. Está dividida para que cada parte cambie sola:
-//! - [`app`]: estado y reglas de edición. Sin terminal, se prueba con teclas simuladas.
-//! - [`ui`]: dibujo de ese estado. No modifica nada.
-//! - este módulo: el bucle de eventos, lo único que toca el terminal real.
+//! The TUI stores nothing of its own: it edits the `sv-config` TOML file, which is
+//! the single source of truth. It is split so each part can change on its own:
+//! - [`app`]: state and editing rules. Terminal-free, tested with simulated keys.
+//! - [`ui`]: drawing of that state. It modifies nothing.
+//! - this module: the event loop, the only thing that touches the real terminal.
 //!
-//! Para añadir un ajuste nuevo: un valor en `Field` (app) y, si hace falta,
-//! cómo se muestra (ui). El bucle no cambia.
+//! To add a new setting: a value in `Field` (app) and, if needed,
+//! how it is displayed (ui). The loop does not change.
 
 use std::io;
 use std::path::PathBuf;
@@ -21,12 +21,12 @@ pub mod ui;
 
 pub use app::App;
 
-/// Abre la TUI sobre `config`, que se guardará en `path`.
+/// Opens the TUI on `config`, which will be saved to `path`.
 ///
-/// Restaura el terminal al salir, también si hay un error.
+/// Restores the terminal on exit, also on error.
 ///
 /// # Errors
-/// Si falla la lectura de eventos o el dibujo.
+/// If reading events or drawing fails.
 pub fn run(config: Config, path: PathBuf) -> io::Result<()> {
     let mut terminal = ratatui::init();
     let result = event_loop(&mut terminal, App::new(config, path));
