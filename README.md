@@ -4,6 +4,8 @@
 
 StarVektor es una dependencia del sistema, sin interfaz gráfica, que intenta imitar por software lo que hace la frecuencia de refresco variable (VRR) en los monitores que la traen: que lo que ves se presente de forma pareja aunque el juego no mantenga un ritmo constante. Para lograrlo genera fotogramas intermedios, predice cuánto tardará el siguiente y decide en cada momento cuánto esfuerzo vale la pena gastar, con una regla por encima de todas: **nunca dejar la imagen peor que no hacer nada**.
 
+> **Etapa temprana.** Este repositorio es un trabajo en curso: **el código está incompleto y cambia sin aviso**. Cualquier copia, bifurcación o descarga es una versión parcial: no es utilizable con juegos, no ofrece garantías y no debe usarse como base de nada en producción.
+
 > **Estado: Fase 0 completada, Fase 1 por empezar.** Existe la arquitectura, el regulador, el formato de log, la configuración y una TUI, verificados con una plataforma sintética. **Todavía no se engancha a ningún juego ni usa la GPU.** Nada de lo que aparece como cifra de rendimiento en este repositorio está medido: son hipótesis a validar (ver [docs/design.md](docs/design.md)).
 
 ## Por qué existe
@@ -113,4 +115,4 @@ Cualquier dato de entrenamiento debe declararse en `data/sources.toml` conforme 
 
 ## Licencia
 
-Prevista: MIT. Todavía no hay archivo `LICENSE`.
+Prevista: MIT. Mientras no exista el archivo `LICENSE`, no se concede ninguna licencia de uso sobre el código. Recuerda que el código está en etapa temprana y es incompleto.

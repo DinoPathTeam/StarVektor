@@ -1,5 +1,7 @@
 # Declaración de uso
 
+> **Etapa temprana.** StarVektor está en desarrollo y su código es incompleto. Lo que sigue describe el diseño al que el proyecto se compromete, no un comportamiento ya implementado: hoy el programa no se engancha a ningún juego. Cualquier copia del código es parcial.
+
 Este documento describe, en términos de **actos concretos**, qué hace StarVektor sobre los juegos y qué no hace. No es asesoría legal: es la descripción técnica que el proyecto se compromete a respetar. Si el comportamiento del programa cambia, este documento se actualiza antes que el código.
 
 ## Qué es
@@ -29,6 +31,7 @@ Software libre (licencia MIT prevista) que mejora la fluidez de presentación en
 - No automatiza el juego ni da ventaja de ningún tipo en partidas.
 - No usa juegos comerciales para entrenar modelos (ver [data-policy.md](data-policy.md)).
 - No usa la salida de otros generadores de fotogramas como objetivo de entrenamiento.
+- No entrena ni ajusta ningún modelo con imágenes de juegos de terceros, tampoco en el equipo del usuario. Lo que se conserva son métricas numéricas y las marcas que el usuario hace a mano, sin imágenes.
 - No tiene fin comercial: el software es gratuito.
 
 ## Niveles de integración

@@ -21,8 +21,9 @@ Antes de capturar un juego comercial se revisa su EULA.
 4. Antes de publicar un modelo se hace una prueba de memorización: con entradas parecidas, no debe reproducir escenas de entrenamiento.
 5. Los logs de telemetría no contienen imágenes ni datos del juego; el dataset de capturas es aparte y opcional.
 6. El primer prototipo se entrena solo con escenas propias; los juegos comerciales se reservan para evaluar.
-7. De los juegos comerciales no se guarda ningún fotograma: la imagen se procesa en memoria, se descarta y solo se conservan métricas numéricas.
-8. La evaluación se limita a juegos de un solo jugador sin conexión. Estado de cada editor en [publisher-review.md](publisher-review.md).
+7. Ningún modelo se entrena ni se ajusta con imágenes de juegos de terceros, tampoco en el equipo del usuario (no hay aprendizaje en línea sobre lo que se juega).
+8. De los juegos comerciales no se guarda ningún fotograma: la imagen se procesa en memoria, se descarta y solo se conservan métricas numéricas.
+9. La evaluación se limita a juegos de un solo jugador sin conexión. Estado de cada editor en [publisher-review.md](publisher-review.md).
 
 ## Verificación automática
 
