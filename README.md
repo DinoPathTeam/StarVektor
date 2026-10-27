@@ -37,6 +37,7 @@ Mucha gente ya usa OptiScaler para escalado o generación de fotogramas. StarVek
 
 - **Primero:** Linux con Vulkan, probado en una AMD RX 9060 XT de 8 GB.
 - **Después:** Windows y GPUs antiguas sin aceleración de IA (RX 580, GTX 1650), con degradación escalonada.
+- **Un jugador, sin conexión.** No está pensado para juegos online ni con anticheat; ver la [declaración de uso](docs/usage-statement.md).
 - **Sin GUI.** Se configura con un archivo TOML y variables de entorno; una TUI (`starvektor tui`) edita ese mismo archivo. Se reevaluará una GUI si se apunta a usuarios no técnicos.
 
 ## Datos y privacidad
@@ -48,7 +49,7 @@ StarVektor aprende de **resultados**, no copia ni guarda contenido de juegos o S
 - La salida de otros generadores de fotogramas es solo referencia de comparación.
 - Los logs de telemetría no contienen imágenes ni datos del juego.
 
-Política completa: [docs/data-policy.md](docs/data-policy.md). Formato del log: [docs/log-schema.md](docs/log-schema.md).
+Política completa: [docs/data-policy.md](docs/data-policy.md). Formato del log: [docs/log-schema.md](docs/log-schema.md). Qué hace y qué no hace el programa sobre los juegos: [docs/usage-statement.md](docs/usage-statement.md). Lectura de los acuerdos de los editores: [docs/publisher-review.md](docs/publisher-review.md).
 
 ## Hoja de ruta
 
@@ -112,4 +113,4 @@ Cualquier dato de entrenamiento debe declararse en `data/sources.toml` conforme 
 
 ## Licencia
 
-Aún sin definir.
+Prevista: MIT. Todavía no hay archivo `LICENSE`.

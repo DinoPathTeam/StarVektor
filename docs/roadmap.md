@@ -22,9 +22,10 @@ Objetivo: medir sin generar nada y decidir cómo engancharse en Linux.
 - [ ] H1.1 Medición sin generar nada: frame times, fps renderizados frente a presentados, VRAM.
 - [ ] H1.2 Detección de la configuración de OptiScaler (solo escalado, FG, ambos).
 - [ ] H1.3 Tres escenas fijas por juego de evaluación.
-- [ ] H1.4 Prueba A: capa Vulkan implícita. Overhead, percentiles 1 % y 0.1 %, latencia, datos del motor disponibles, compatibilidad.
-- [ ] H1.5 Prueba B: gamescope, con las mismas métricas.
+- [ ] H1.4 Prueba A: capa Vulkan implícita. Overhead, percentiles 1 % y 0.1 %, latencia, datos del motor disponibles, compatibilidad y huella (si corre en el proceso del juego y a qué datos accede).
+- [ ] H1.5 Prueba B: gamescope, con las mismas métricas, incluida la huella.
 - [ ] H1.6 Decisión D2 registrada con las cifras que la sustentan.
+- [ ] H1.7 Lista de exclusión de juegos con anticheat: StarVektor apagado por defecto en ellos (D9).
 
 **Salida:** repetir la misma escena da resultados comparables (tolerancia a definir con los datos) y D2 queda decidida.
 

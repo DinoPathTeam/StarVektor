@@ -20,6 +20,9 @@ Documentación y comentarios en español; identificadores de código en inglés.
 ## Documentación pública
 README, `docs/design.md`, `docs/roadmap.md` y `docs/data-policy.md` son de lectura pública. Al cerrar un hito, marcarlo en `docs/roadmap.md` solo con evidencia (medición o prueba), y no presentar estimaciones como resultados.
 
+## Límites legales (docs/usage-statement.md)
+Caja negra: no leer ni escribir memoria del juego, no tocar sus archivos ni su red, no extraer assets, no guardar fotogramas de juegos comerciales, no interferir con DRM ni anticheat. Solo juegos de un jugador sin conexión; apagado por defecto en juegos con anticheat. Cualquier cambio que toque esto requiere actualizar la declaración y `docs/publisher-review.md` primero.
+
 ## Antes de dar algo por terminado
 Ejecutar los seis comandos de verificación del README. No afirmar rendimiento a partir de `selftest`: es sintético.
 
