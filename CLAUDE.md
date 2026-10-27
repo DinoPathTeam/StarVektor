@@ -5,6 +5,9 @@ System dependency (no GUI, with a configuration TUI) that imitates VRR. Supreme 
 ## Language
 All documentation, code comments, user-facing strings and commit messages are written in **English**, so that anyone who opens the repository can read it. Code identifiers are in English too. (Conversation with the maintainers may happen in another language; the repository does not.) New documents and edits follow this from now on.
 
+## Commits
+End every commit message with exactly this trailer and nothing else attributing a session: `Co-Authored-By: Claude <no-reply@anthropic.com>`. Never add links to chat or agent sessions (no `Claude-Session:` lines) to commits or pull requests.
+
 ## Identity
 The project is published and credited as **DinoPathTeam** (GitHub organization). Authorship, package metadata and the copyright holder refer to DinoPathTeam.
 
