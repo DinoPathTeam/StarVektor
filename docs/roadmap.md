@@ -21,7 +21,7 @@ Goal: measure without generating anything and decide how to hook in on Linux.
 
 - [ ] H1.1 Measurement without generating anything: frame times, rendered vs. presented fps, VRAM.
 - [ ] H1.2 Detection of the OptiScaler configuration (upscaling only, FG, both).
-- [ ] H1.3 Three fixed scenes per evaluation game.
+- [ ] H1.3 Three fixed scenes per evaluation game, played by a person or with the game's own benchmark mode (no input automation), on the unmodified game.
 - [ ] H1.4 Test A: implicit Vulkan layer. Overhead, 1 % and 0.1 % percentiles, latency, available engine data, compatibility and footprint (whether it runs inside the game process and what data it accesses).
 - [ ] H1.5 Test B: gamescope, with the same metrics, including footprint.
 - [ ] H1.6 Decision D2 recorded with the figures that support it.

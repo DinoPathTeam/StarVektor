@@ -9,7 +9,7 @@ If a decision changes, it is updated here with the date and the reason. A milest
 | | Decision |
 |---|---|
 | D1. Language | The core (predictor, regulator, confidence mask, telemetry, TUI) is Rust. C++ only where the ecosystem requires it (a thin shim for the Vulkan layer or the vendor's inference SDK), with a narrow boundary: a small C interface, coarse calls per frame, clear buffer ownership rules and one-way dependency. Shaders are compiled separately. |
-| D2. Linux hook | Decided by measurement, not preference: implicit Vulkan layer versus gamescope, with the same protocol. The one with the lowest overhead and best presentation pacing wins; the other is kept only if it offers something the first does not. A **footprint** criterion is added: what each option touches (whether it runs inside the game process and what data it accesses), because it feeds the [usage statement](usage-statement.md). Note: gamescope also installs a Vulkan layer inside the game, so "outside the process" only describes our code, not the whole path. Hypothesis to verify: a hybrid (the layer extracts engine data and gamescope presents on time), which would also double the footprint. **Pending (Phase 1).** |
+| D2. Linux hook | Decided by measurement, not preference: implicit Vulkan layer versus gamescope, with the same protocol. The one with the lowest overhead and best presentation pacing wins; the other is kept only if it offers something the first does not. A **footprint** criterion is added: what each option touches (whether it runs inside the game process and what data it accesses), because it feeds the [usage statement](usage-statement.md). Note: gamescope also installs a Vulkan layer inside the game, so "outside the process" only describes our code, not the whole path. Hypothesis to verify: a hybrid (the layer extracts engine data and gamescope presents on time), which would also double the footprint. A **protected games mode** is planned for titles with anti-cheat or anti-tamper: gamescope only, no component of ours in the game process, measurements taken from the compositor side; whether gamescope can host frame generation is part of H1.5. **Pending (Phase 1).** |
 | D3. Configuration | A TUI over a TOML file and environment variables, per-game profiles and a minimal overlay (frame time, active level, hotkey to mark artifacts). No GUI for now. |
 | D4. Data | Training only on our own scenes in an open engine and sources with explicit permission. Commercial games for evaluation only. Output of other generators as reference only. Provenance mandatory. See [data-policy.md](data-policy.md). |
 | D5. Cross-cutting rule | Never leave the image worse than doing nothing. When in doubt, repeat the frame or switch off (level 0). |
@@ -65,8 +65,12 @@ Three fixed scenes per game (exploration, combat with particles, changing lighti
 | Control | Reflections, particles, destructible geometry |
 | The Witcher 3 (2026 version) | Dense vegetation, skies, shimmering |
 | Crimson Desert | Huge map, vegetation, varied weather, destruction, dynamic lighting |
+| The Elder Scrolls V: Skyrim Special Edition | Old engine with physics tied to 60 fps, open world, first and third person; unmodified base game |
+| The Medium | Two worlds shown at once, with a moving split between two different images: stresses the confidence mask and edges |
+| Hell is Us | Free VRAM headroom, to measure generation quality |
+| Metro: Last Light Redux | Free VRAM headroom, dark scenes, particles |
 
-For the older-hardware phase, more single-player games will be added. Competitive online games are out of scope (D9); StarVektor stays off in them.
+Control is expected to run with very little free VRAM on an 8 GB card, so it is used with high textures (to check the safe switch-off) and with reduced textures (to leave room for levels 1 to 3); this is an expectation to be confirmed by measurement. For the older-hardware phase, more single-player games will be added. Competitive online games are out of scope (D9); StarVektor stays off in them.
 
 ## Open decisions
 

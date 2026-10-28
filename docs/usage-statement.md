@@ -29,7 +29,7 @@ Free software (MIT license planned) that improves presentation smoothness on mon
 - It does not extract or copy assets, models, textures, audio or text.
 - It does not intercept or emulate the game's network traffic or protocols.
 - It does not bypass, disable or interfere with protections (DRM, anti-cheat, access control).
-- It does not automate the game or give an advantage of any kind in matches.
+- It does not automate the game, inject input, or give an advantage of any kind in matches. Test scenes are played by a person or use the game's own benchmark mode.
 - It does not use commercial games to train models (see [data-policy.md](data-policy.md)).
 - It does not use the output of other frame generators as a training target.
 - It does not train or fine-tune any model on images from third-party games, not even on the user's machine. What is kept are numerical metrics and the marks the user makes by hand, without images.
@@ -44,6 +44,10 @@ Free software (MIT license planned) that improves presentation smoothness on mon
 | `engine` | Engine data, through the SDK | Only when the game's developer integrates it into their own engine |
 
 When a developer integrates the SDK into their game, StarVektor stops being third-party software for that game and almost all restrictions on external programs no longer apply.
+
+## Protected games mode
+
+For games protected by anti-cheat or anti-tamper systems, StarVektor will offer a mode with no component of its own inside the game process: presentation through gamescope only, with measurements taken from the compositor side. This reduces the footprint described below, but it does not replace reading each publisher's agreement, and it is not a guarantee against false positives. Design status: planned (see D2 in [design.md](design.md)).
 
 ## Footprint of each hook
 

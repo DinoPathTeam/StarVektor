@@ -23,7 +23,8 @@ A commercial game's EULA is reviewed before capturing it.
 6. The first prototype is trained only on our own scenes; commercial games are reserved for evaluation.
 7. No model is trained or fine-tuned on images from third-party games, not even on the user's machine (there is no online learning on what is being played).
 8. No frame from commercial games is stored: the image is processed in memory, discarded, and only numerical metrics are kept.
-9. Evaluation is limited to single-player, offline games. Status of each publisher in [publisher-review.md](publisher-review.md).
+9. Test scenes are played by a person, from a saved game or the game's own benchmark mode; no input is automated or injected (Steam Subscriber Agreement §4.C). Games are run unmodified.
+10. Evaluation is limited to single-player, offline games. Status of each publisher in [publisher-review.md](publisher-review.md).
 
 ## Automatic verification
 
