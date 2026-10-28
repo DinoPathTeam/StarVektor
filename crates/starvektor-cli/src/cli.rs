@@ -31,6 +31,8 @@ pub enum Command {
     Log(LogCommand),
     /// Runs the system against a synthetic game and validates the log it produces.
     Selftest(SelftestArgs),
+    /// Converts a mangoapp CSV (a baseline without generation) into a validated run log.
+    Measure(MeasureArgs),
 }
 
 #[derive(Debug, Subcommand)]
@@ -67,6 +69,43 @@ pub struct SelftestArgs {
     /// Where to write the log (by default, the logs directory).
     #[arg(long, value_name = "FILE")]
     pub out: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct MeasureArgs {
+    /// Per-frame CSV written by mangoapp (`MANGOHUD_CONFIG=...autostart_log=1`).
+    pub csv: PathBuf,
+    /// Game name, as it appears in the log.
+    #[arg(long)]
+    pub game: String,
+    /// Scene label (a person plays it, or the game's own benchmark runs it).
+    #[arg(long)]
+    pub scene: String,
+    /// GPU name for the log (mangoapp does not always report it).
+    #[arg(long, default_value = "unknown")]
+    pub gpu: String,
+    /// Resolution of the run, as WIDTHxHEIGHT.
+    #[arg(long, default_value = "1920x1080", value_parser = parse_resolution)]
+    pub resolution: (u32, u32),
+    /// `device` directory of the amdgpu card used for total VRAM
+    /// (by default, the first card under /sys/class/drm).
+    #[arg(long, value_name = "DIR")]
+    pub sysfs: Option<PathBuf>,
+    /// Where to write the log (by default, the logs directory).
+    #[arg(long, value_name = "FILE")]
+    pub out: Option<PathBuf>,
+}
+
+fn parse_resolution(text: &str) -> Result<(u32, u32), String> {
+    let (w, h) = text
+        .split_once(['x', 'X'])
+        .ok_or("expected WIDTHxHEIGHT, for example 1920x1080")?;
+    let w: u32 = w.parse().map_err(|_| "invalid width")?;
+    let h: u32 = h.parse().map_err(|_| "invalid height")?;
+    if w == 0 || h == 0 {
+        return Err("resolution cannot have a zero dimension".into());
+    }
+    Ok((w, h))
 }
 
 #[cfg(test)]
@@ -112,6 +151,41 @@ mod tests {
             cli.command,
             Command::Config(ConfigCommand::Init { force: true })
         ));
+    }
+
+    #[test]
+    fn parses_measure_arguments() {
+        let cli = Cli::try_parse_from([
+            "starvektor",
+            "measure",
+            "a.csv",
+            "--game",
+            "g",
+            "--scene",
+            "s",
+            "--resolution",
+            "2560x1440",
+        ])
+        .unwrap();
+        let Command::Measure(args) = cli.command else {
+            panic!("expected measure");
+        };
+        assert_eq!(args.resolution, (2560, 1440));
+        assert!(Cli::try_parse_from(["starvektor", "measure", "a.csv", "--game", "g"]).is_err());
+        assert!(
+            Cli::try_parse_from([
+                "starvektor",
+                "measure",
+                "a.csv",
+                "--game",
+                "g",
+                "--scene",
+                "s",
+                "--resolution",
+                "0x1",
+            ])
+            .is_err()
+        );
     }
 
     #[test]

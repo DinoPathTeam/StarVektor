@@ -19,6 +19,7 @@ sv-telemetry = { path = "crates/sv-telemetry" }
 sv-config = { path = "crates/sv-config" }
 sv-gfx = { path = "crates/sv-gfx" }
 sv-platform = { path = "crates/sv-platform" }
+sv-platform-linux = { path = "crates/sv-platform-linux" }
 sv-inference = { path = "crates/sv-inference" }
 sv-tui = { path = "crates/sv-tui" }
 

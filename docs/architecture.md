@@ -25,6 +25,7 @@ starvektor-cli  (composition root: wiring.rs)
 | Add a graphics backend | new crate or module in `sv-gfx` implementing `GraphicsBackend`; register in `wiring.rs` |
 | Add an inference engine or model | `sv-inference`; the budget-based choice is in `select_model` |
 | Port to another OS or hook (Vulkan layer, gamescope) | implement `Platform` in `sv-platform` |
+| New measurement source on Linux | add a reader in `sv-platform-linux`; map it in `starvektor-cli/src/commands/measure.rs` |
 | Add a command | `starvektor-cli/src/commands/` and `cli.rs` |
 | Change the TUI | `sv-tui` (`app.rs` is pure state; `ui.rs` only draws) |
 

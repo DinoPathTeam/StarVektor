@@ -1419,6 +1419,7 @@ dependencies = [
  "sv-gfx",
  "sv-inference",
  "sv-platform",
+ "sv-platform-linux",
  "sv-telemetry",
  "sv-tui",
  "sv-types",
@@ -1490,6 +1491,13 @@ dependencies = [
 
 [[package]]
 name = "sv-platform"
+version = "0.0.1"
+dependencies = [
+ "sv-types",
+]
+
+[[package]]
+name = "sv-platform-linux"
 version = "0.0.1"
 dependencies = [
  "sv-types",

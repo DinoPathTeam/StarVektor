@@ -36,6 +36,10 @@ allow = ["sv-types"]
 layer = "platform"
 allow = ["sv-types"]
 
+[crates.sv-platform-linux]
+layer = "platform"
+allow = ["sv-types"]
+
 [crates.sv-tui]
 layer = "interface"
 allow = ["sv-config", "sv-types"]
@@ -51,6 +55,7 @@ sv-types = ["serde"]
 sv-core = []
 sv-gfx = []
 sv-platform = []
+sv-platform-linux = []
 sv-inference = []
 sv-telemetry = ["serde", "serde_json"]
 sv-config = ["serde", "toml", "thiserror"]

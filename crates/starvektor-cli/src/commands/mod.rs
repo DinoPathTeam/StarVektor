@@ -10,6 +10,7 @@ use crate::cli::{Cli, Command};
 
 pub mod config;
 pub mod logs;
+pub mod measure;
 pub mod selftest;
 pub mod tui;
 
@@ -27,6 +28,7 @@ pub fn dispatch(cli: Cli) -> CommandResult {
         Command::Config(command) => config::run(command, config),
         Command::Log(command) => logs::run(command),
         Command::Selftest(args) => selftest::run(&args, config),
+        Command::Measure(args) => measure::run(&args),
     }
 }
 

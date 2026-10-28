@@ -7,7 +7,7 @@
 //!
 //! - [`wiring`]: translation between layers (configuration -> core parameters).
 //! - [`ids`]: run identifiers.
-//! - [`commands`]: `tui`, `config`, `log` and `selftest`.
+//! - [`commands`]: `tui`, `config`, `log`, `selftest` and `measure`.
 
 pub mod cli;
 pub mod commands;

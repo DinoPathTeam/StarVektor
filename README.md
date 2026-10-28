@@ -82,6 +82,7 @@ A Rust workspace with one crate per responsibility, so that a change stays in on
 | `sv-gfx` | Graphics backend interface (Vulkan, in the future) |
 | `sv-inference` | Model selection and inference interface |
 | `sv-platform` | Capture and presentation; synthetic platform for tests |
+| `sv-platform-linux` | Linux measurement sources read from outside the game (mangoapp CSV, amdgpu sysfs) |
 | `sv-tui` | Terminal configuration interface |
 | `starvektor-cli` | Binary; the only place where everything is wired together |
 
@@ -93,6 +94,7 @@ Requires stable Rust.
 
 ```sh
 cargo run -p starvektor-cli -- selftest        # wiring test with synthetic data
+cargo run -p starvektor-cli -- measure FILE.csv --game NAME --scene LABEL   # baseline log from a mangoapp CSV (no generation)
 cargo run -p starvektor-cli -- config init     # creates the configuration file
 cargo run -p starvektor-cli -- tui             # edits the configuration
 cargo run -p starvektor-cli -- log validate F  # validates a JSONL log

@@ -12,7 +12,7 @@ End every commit message with exactly this trailer and nothing else attributing 
 The project is published and credited as **DinoPathTeam** (GitHub organization). Authorship, package metadata and the copyright holder refer to DinoPathTeam.
 
 ## Architecture (see docs/architecture.md)
-- One crate per responsibility. Layers: `sv-types` → core (`sv-core`, `sv-telemetry`, `sv-config`) → backends (`sv-gfx`, `sv-inference`) → `sv-platform` → `sv-tui` → `starvektor-cli`.
+- One crate per responsibility. Layers: `sv-types` → core (`sv-core`, `sv-telemetry`, `sv-config`) → backends (`sv-gfx`, `sv-inference`) → `sv-platform`, `sv-platform-linux` → `sv-tui` → `starvektor-cli`.
 - Allowed dependencies are in `architecture/layers.toml`; `scripts/check_layers.py` verifies them. If you need a new dependency, edit that file deliberately, not to silence the error.
 - `sv-core` depends on nothing external and not on `sv-config`. The config → core translation lives only in `starvektor-cli/src/wiring.rs`.
 - A change should touch one crate. If it touches several, check whether an abstraction is missing.

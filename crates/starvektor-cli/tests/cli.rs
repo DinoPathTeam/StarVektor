@@ -255,3 +255,49 @@ fn help_and_version_work() {
     }
     assert!(sb.run(&["--version"]).status.success());
 }
+
+#[test]
+fn measure_turns_a_mangoapp_csv_into_a_valid_log() {
+    let sb = Sandbox::new("measure");
+    let csv = sb.path("mango.csv");
+    let mut rows = String::from(
+        "os,cpu,gpu,ram,kernel,driver,cpuscheduler\nCachyOS,cpu,,1,7.3.0,,performance\n\
+         fps,frametime,cpu_load,cpu_power,gpu_load,cpu_temp,gpu_temp,gpu_core_clock,gpu_mem_clock,gpu_vram_used,gpu_power,ram_used,swap_used,process_rss,cpu_mhz,elapsed\n",
+    );
+    for i in 1..=100_u64 {
+        rows.push_str(&format!(
+            "100,10,6,0,14,43,37,1561,1069,2.0,26,10,0.1,0,4441,{}\n",
+            i * 10_000_000
+        ));
+    }
+    fs::write(&csv, rows).unwrap();
+    let log = sb.path("baseline.jsonl");
+
+    let out = sb.run(&[
+        "measure",
+        s(&csv),
+        "--game",
+        "demo",
+        "--scene",
+        "walk",
+        "--sysfs",
+        s(&sb.path("no-card")),
+        "--out",
+        s(&log),
+    ]);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(text(&out.stdout).contains("measure ok: 100 frames"));
+
+    let validated = sb.run(&["log", "validate", s(&log)]);
+    assert!(validated.status.success(), "{}", text(&validated.stderr));
+
+    let missing = sb.run(&[
+        "measure",
+        s(&sb.path("absent.csv")),
+        "--game",
+        "g",
+        "--scene",
+        "s",
+    ]);
+    assert_eq!(missing.status.code(), Some(1));
+}
