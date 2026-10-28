@@ -23,7 +23,7 @@ A record of what the license agreements (EULAs) of the publishers whose games mi
 
 | Publisher / game | Relevant clauses | Status |
 |---|---|---|
-| Bethesda (Fallout 4 and similar) | Forbids commercial use, distribution, copying, network/online use, reverse engineering and modifying the software. Nothing about third-party software, data mining or recording. | No clause against |
+| Bethesda (Fallout 4, Skyrim Special Edition and similar) | Forbids commercial use, distribution, copying, network/online use, removing proprietary notices, and (clause g) reverse engineering, decompiling, disassembling or modifying the software, in whole or in part. Nothing about third-party software, cheats, overlays, recording, data mining or AI. Mods are governed by a separate Editor EULA. Skyrim Special Edition text (North America and Latin America version) read in full on 2026-10-27. | No clause against, under the usage statement (we do not modify the software; evaluated offline and without mods) |
 | Square Enix (FFVII Remake) | §3: commercial use, copying or storing the product, reverse engineering, circumventing protections, and creating programs that imitate the product's data or functionality. | No clause against, under the usage statement (no frames stored; we imitate a function of the display, not of the game) |
 | 505 Games (Death Stranding) | Forbids extracting information and reverse engineering. Nothing about overlays or AI. | No clause against |
 | Ubisoft | Forbids trainers, macros and cheat programs; the game may monitor memory for interacting third-party programs. | Offline games only |

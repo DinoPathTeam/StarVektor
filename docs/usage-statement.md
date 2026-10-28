@@ -13,6 +13,7 @@ Free software (MIT license planned) that improves presentation smoothness on mon
 - **Single-player, offline** games.
 - It is not used in online games or in games with anti-cheat. In them StarVektor is off by default (exclusion list, milestone H1.7 of the [roadmap](roadmap.md)) and is never tested on online accounts.
 - Comparison tests are run only with single-player games, under the conditions in [publisher-review.md](publisher-review.md).
+- Comparison tests use the unmodified base game: no mods, no script extenders and no other injected code besides StarVektor itself, so that results are reproducible and are not mixed up with third-party tools.
 
 ## What it does
 
@@ -24,7 +25,7 @@ Free software (MIT license planned) that improves presentation smoothness on mon
 ## What it does not do
 
 - It does not read or write the memory of the game process.
-- It does not modify or patch the game's binaries, libraries or files, and does not read its data files.
+- It does not modify, patch, reverse engineer, decompile or disassemble the game software, in whole or in part: not its binaries, libraries or files. It does not read its data files.
 - It does not extract or copy assets, models, textures, audio or text.
 - It does not intercept or emulate the game's network traffic or protocols.
 - It does not bypass, disable or interfere with protections (DRM, anti-cheat, access control).
