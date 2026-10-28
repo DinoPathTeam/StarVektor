@@ -36,6 +36,10 @@ games = [
   "Cyberpunk 2077",
   "The Witcher 3 (2026 version)",
   "Crimson Desert",
+  "The Elder Scrolls V: Skyrim",
+  "The Medium",
+  "Hell is Us",
+  "Metro: Last Light Redux",
 ]
 
 # Existing frame generators: comparison reference only, never a training
