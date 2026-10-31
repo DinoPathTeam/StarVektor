@@ -301,3 +301,44 @@ fn measure_turns_a_mangoapp_csv_into_a_valid_log() {
     ]);
     assert_eq!(missing.status.code(), Some(1));
 }
+
+#[test]
+fn measure_can_split_a_long_recording_into_segments() {
+    let sb = Sandbox::new("measure-seg");
+    let csv = sb.path("long.csv");
+    let mut rows = String::from(
+        "fps,frametime,cpu_load,cpu_power,gpu_load,cpu_temp,gpu_temp,gpu_core_clock,gpu_mem_clock,gpu_vram_used,gpu_power,ram_used,swap_used,process_rss,cpu_mhz,elapsed\n",
+    );
+    for i in 1..=500_u64 {
+        rows.push_str(&format!(
+            "100,10,6,0,14,43,37,1561,1069,2.0,26,10,0.1,0,4441,{}\n",
+            i * 10_000_000
+        ));
+    }
+    fs::write(&csv, rows).unwrap();
+    let out = sb.path("seg.jsonl");
+
+    let run = sb.run(&[
+        "measure",
+        s(&csv),
+        "--game",
+        "demo",
+        "--scene",
+        "walk",
+        "--sysfs",
+        s(&sb.path("none")),
+        "--segment-seconds",
+        "2",
+        "--out",
+        s(&out),
+    ]);
+    assert!(run.status.success(), "{}", text(&run.stderr));
+    for name in ["seg-s001.jsonl", "seg-s002.jsonl"] {
+        let validated = sb.run(&["log", "validate", s(&sb.path(name))]);
+        assert!(
+            validated.status.success(),
+            "{name}: {}",
+            text(&validated.stderr)
+        );
+    }
+}

@@ -91,7 +91,12 @@ pub struct MeasureArgs {
     /// (by default, the first card under /sys/class/drm).
     #[arg(long, value_name = "DIR")]
     pub sysfs: Option<PathBuf>,
-    /// Where to write the log (by default, the logs directory).
+    /// Splits the recording into consecutive logs of this many seconds each
+    /// (for example 180 for 3 minutes). A tail shorter than half a segment is dropped.
+    #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u32).range(1..))]
+    pub segment_seconds: Option<u32>,
+    /// Where to write the log (by default, the logs directory). With
+    /// `--segment-seconds`, segments are written next to it as `NAME-s001.jsonl`, ...
     #[arg(long, value_name = "FILE")]
     pub out: Option<PathBuf>,
 }
@@ -186,6 +191,28 @@ mod tests {
             ])
             .is_err()
         );
+    }
+
+    #[test]
+    fn parses_segment_seconds() {
+        let base = [
+            "starvektor",
+            "measure",
+            "a.csv",
+            "--game",
+            "g",
+            "--scene",
+            "s",
+        ];
+        let mut with = base.to_vec();
+        with.extend(["--segment-seconds", "180"]);
+        let Command::Measure(args) = Cli::try_parse_from(with).unwrap().command else {
+            panic!("expected measure");
+        };
+        assert_eq!(args.segment_seconds, Some(180));
+        let mut zero = base.to_vec();
+        zero.extend(["--segment-seconds", "0"]);
+        assert!(Cli::try_parse_from(zero).is_err());
     }
 
     #[test]

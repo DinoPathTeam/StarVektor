@@ -74,23 +74,36 @@ pub fn run(args: &MeasureArgs) -> CommandResult {
         resolution: args.resolution,
         vram_total_mb,
     };
-    let outcome = measure_text(&text, &options, &out, &run_id)?;
+    let outcomes = match args.segment_seconds {
+        None => vec![measure_text(&text, &options, &out, &run_id)?],
+        Some(seconds) => {
+            let (outcomes, dropped) =
+                measure_segments(&text, &options, &out, f64::from(seconds) * 1000.0)?;
+            println!(
+                "split into {} segments of {seconds} s ({dropped} short tail dropped)",
+                outcomes.len()
+            );
+            outcomes
+        }
+    };
 
-    println!(
-        "measure ok: {} frames -> {}",
-        outcome.frames,
-        outcome.out.display()
-    );
-    if let Some(s) = &outcome.summary {
+    for outcome in &outcomes {
         println!(
-            "  fps avg {:.1} | p1 {:.2} ms | p0.1 {:.2} ms | no frame generation (baseline)",
-            s.fps_presented_avg, s.p1_ms, s.p01_ms
+            "measure ok: {} frames -> {}",
+            outcome.frames,
+            outcome.out.display()
+        );
+        if let Some(s) = &outcome.summary {
+            println!(
+                "  fps avg {:.1} | p1 {:.2} ms | p0.1 {:.2} ms | no frame generation (baseline)",
+                s.fps_presented_avg, s.p1_ms, s.p01_ms
+            );
+        }
+        println!(
+            "  log validated: {} records, {} frames",
+            outcome.validation.records, outcome.validation.frames
         );
     }
-    println!(
-        "  log validated: {} records, {} frames",
-        outcome.validation.records, outcome.validation.frames
-    );
     Ok(ExitCode::SUCCESS)
 }
 
@@ -105,6 +118,50 @@ pub fn measure_text(
     run_id: &str,
 ) -> Result<MeasureOutcome, Box<dyn Error>> {
     let log = mangoapp::parse(csv)?;
+    write_run(&log, options, out, run_id)
+}
+
+/// Splits the recording into windows of `window_ms` and writes one validated log
+/// per window, named `NAME-s001.jsonl`, `NAME-s002.jsonl`, ... next to `out`.
+/// The scene label of each gets the same `-sNNN` suffix.
+///
+/// Returns the outcomes and how many short tail segments were dropped.
+///
+/// # Errors
+/// If the CSV is invalid, no segment is long enough, or a log cannot be written or validated.
+pub fn measure_segments(
+    csv: &str,
+    options: &MeasureOptions,
+    out: &Path,
+    window_ms: f64,
+) -> Result<(Vec<MeasureOutcome>, usize), Box<dyn Error>> {
+    let log = mangoapp::parse(csv)?;
+    let (segments, dropped) = log.split(window_ms);
+    if segments.is_empty() {
+        return Err("the recording is shorter than half a segment: nothing to write".into());
+    }
+    let stem = out
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("measure");
+    let mut outcomes = Vec::with_capacity(segments.len());
+    for (i, segment) in segments.iter().enumerate() {
+        let path = out.with_file_name(format!("{stem}-s{:03}.jsonl", i + 1));
+        let labelled = MeasureOptions {
+            scene: format!("{}-s{:03}", options.scene, i + 1),
+            ..options.clone()
+        };
+        outcomes.push(write_run(segment, &labelled, &path, &ids::new_run_id())?);
+    }
+    Ok((outcomes, dropped))
+}
+
+fn write_run(
+    log: &MangoLog,
+    options: &MeasureOptions,
+    out: &Path,
+    run_id: &str,
+) -> Result<MeasureOutcome, Box<dyn Error>> {
     if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
         fs::create_dir_all(parent)?;
     }
@@ -116,7 +173,7 @@ pub fn measure_text(
         game_version: env!("CARGO_PKG_VERSION").to_owned(),
         scene: options.scene.clone(),
         gpu: options.gpu.clone(),
-        driver: driver_label(&log),
+        driver: driver_label(log),
         mesa: None,
         resolution: Resolution(options.resolution.0, options.resolution.1),
         optiscaler: OptiScalerMode::None,
@@ -257,6 +314,25 @@ mod tests {
         assert!(text.contains("\"vram_free_mb\":4608"));
         assert!(text.contains("\"generation\":false"));
         fs::remove_file(out).unwrap();
+    }
+
+    #[test]
+    fn writes_one_valid_log_per_segment() {
+        let dir = std::env::temp_dir().join(format!("sv-seg-{}", std::process::id()));
+        let out = dir.join("run.jsonl");
+        // 600 frames at 10 ms = 6 s; 2 s windows -> 3 segments.
+        let (outcomes, dropped) =
+            measure_segments(&csv(600), &options(Some(8192)), &out, 2000.0).unwrap();
+        // The last frame (exactly 6000 ms) opens a fourth window that is a dropped tail.
+        assert_eq!((outcomes.len(), dropped), (3, 1));
+        for (i, outcome) in outcomes.iter().enumerate() {
+            assert!(outcome.out.ends_with(format!("run-s{:03}.jsonl", i + 1)));
+            assert!(outcome.validation.frames >= 199);
+            let text = fs::read_to_string(&outcome.out).unwrap();
+            assert!(text.contains(&format!("\"scene\":\"unit-s{:03}\"", i + 1)));
+        }
+        assert!(measure_segments(&csv(5), &options(None), &out, 60_000.0).is_err());
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

@@ -95,6 +95,7 @@ Requires stable Rust.
 ```sh
 cargo run -p starvektor-cli -- selftest        # wiring test with synthetic data
 cargo run -p starvektor-cli -- measure FILE.csv --game NAME --scene LABEL   # baseline log from a mangoapp CSV (no generation)
+# add --segment-seconds 180 to cut a long recording into 3-minute logs
 cargo run -p starvektor-cli -- config init     # creates the configuration file
 cargo run -p starvektor-cli -- tui             # edits the configuration
 cargo run -p starvektor-cli -- log validate F  # validates a JSONL log

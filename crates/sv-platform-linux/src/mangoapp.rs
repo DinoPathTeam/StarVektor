@@ -37,6 +37,55 @@ impl MangoLog {
     }
 }
 
+impl MangoLog {
+    /// Splits the log into consecutive windows of `window_ms` of log time.
+    ///
+    /// Each window is rebased to start at 0 ms. Windows whose frames span less
+    /// than half a window (normally the tail of the recording) are dropped; the
+    /// second value is how many were dropped.
+    ///
+    /// # Panics
+    /// Never; a non-positive or non-finite window returns the whole log as one segment.
+    #[must_use]
+    pub fn split(&self, window_ms: f64) -> (Vec<MangoLog>, usize) {
+        if !window_ms.is_finite() || window_ms <= 0.0 {
+            return (vec![self.clone()], 0);
+        }
+        let mut segments: Vec<Vec<MangoFrame>> = Vec::new();
+        let mut current_index: Option<u64> = None;
+        for frame in &self.frames {
+            // Truncation is intended: index of the window the frame falls in.
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let index = (frame.elapsed_ms / window_ms) as u64;
+            if current_index != Some(index) {
+                current_index = Some(index);
+                segments.push(Vec::new());
+            }
+            if let Some(last) = segments.last_mut() {
+                last.push(frame.clone());
+            }
+        }
+        let mut kept = Vec::new();
+        let mut dropped = 0;
+        for mut frames in segments {
+            let start = frames.first().map_or(0.0, |f| f.elapsed_ms);
+            let span = frames.last().map_or(0.0, |f| f.elapsed_ms) - start;
+            if span < window_ms / 2.0 {
+                dropped += 1;
+                continue;
+            }
+            for frame in &mut frames {
+                frame.elapsed_ms -= start;
+            }
+            kept.push(MangoLog {
+                system: self.system.clone(),
+                frames,
+            });
+        }
+        (kept, dropped)
+    }
+}
+
 /// Why a log could not be read.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseError {
@@ -234,6 +283,32 @@ mod tests {
             row(10.0, 1.0, 1_000_000)
         );
         assert!(parse(&text).unwrap_err().message.contains("backwards"));
+    }
+
+    #[test]
+    fn splits_into_windows_rebased_to_zero_and_drops_a_short_tail() {
+        // 10 ms frames for 7.5 s; 3 s windows -> [0,3) [3,6) kept, [6,7.5) = 1.5 s kept (half), none dropped.
+        let mut text = format!("{HEADER}\n");
+        for i in 1..=750_u64 {
+            text.push_str(&row(10.0, 1.0, i * 10_000_000));
+        }
+        let log = parse(&text).unwrap();
+        let (segments, dropped) = log.split(3000.0);
+        assert_eq!(segments.len(), 3);
+        assert_eq!(dropped, 0);
+        assert!(
+            segments[1].frames[0].elapsed_ms < 20.0,
+            "rebased to the window start"
+        );
+        assert_eq!(segments.iter().map(|s| s.frames.len()).sum::<usize>(), 750);
+
+        // A tail under half a window is dropped.
+        let (segments, dropped) = log.split(6000.0);
+        assert_eq!((segments.len(), dropped), (1, 1));
+
+        // Degenerate windows keep the whole log.
+        assert_eq!(log.split(0.0).0.len(), 1);
+        assert_eq!(log.split(f64::NAN).0.len(), 1);
     }
 
     #[test]
