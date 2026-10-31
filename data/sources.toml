@@ -40,6 +40,7 @@ games = [
   "The Medium",
   "Hell is Us",
   "Metro: Last Light Redux",
+  "Metro 2033 Redux",
 ]
 
 # Candidates to promote to evaluation_only once a title is picked for a
@@ -53,7 +54,6 @@ games = [
   "Darksiders II Deathinitive Edition",
   "Darksiders Genesis",
   "Darksiders III",
-  "Metro 2033 Redux",
   "Dead Island 2",
   "Maneater",
   "Detroit: Become Human",

@@ -63,6 +63,8 @@ The candidates listed in `data/sources.toml` (`evaluation_candidates`) were comp
 
 Resident Evil 4 (2023 remake) was added later on 2026-10-31 and checked the same way: ProtonDB Gold and Deck Verified with no anti-cheat mention in the first page of reports, and no entry in either list (the Are We Anti-Cheat Yet matches are other Resident Evil games).
 
+Metro 2033 Redux was promoted to the evaluation set after its Steam store page was read on 2026-10-31: publisher Deep Silver, single-player, Linux support, and no anti-cheat or third-party DRM listed on the page.
+
 **Limits.** This is absence of evidence, not proof. Both lists track anti-cheats of games with online modes, ProtonDB reports are user opinions, and only the first page of reports was read. Each title is still checked on its own store page before a capture is made.
 
 ## Next steps
