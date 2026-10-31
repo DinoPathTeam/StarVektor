@@ -60,6 +60,7 @@ games = [
   "Heavy Rain",
   "Beyond: Two Souls",
   "The Witcher 2: Assassins of Kings Enhanced Edition",
+  "Resident Evil 4 (2023 remake)",
 ]
 
 # Existing frame generators: comparison reference only, never a training
