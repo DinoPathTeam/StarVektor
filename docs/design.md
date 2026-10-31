@@ -65,7 +65,7 @@ Three fixed scenes per game (exploration, combat with particles, changing lighti
 | Control | Reflections, particles, destructible geometry |
 | The Witcher 3 (2026 version) | Dense vegetation, skies, shimmering |
 | Crimson Desert | Huge map, vegetation, varied weather, destruction, dynamic lighting |
-| The Elder Scrolls V: Skyrim Special Edition | Old engine with physics tied to 60 fps, open world, first and third person; unmodified base game |
+| The Elder Scrolls V: Skyrim Special Edition | Old engine with physics tied to 60 fps, open world, first and third person; unmodified base game. In Phase 1 it works as a light-load control, not a stress test: at 60 fps it leaves the GPU mostly idle, so it checks the measurement path and repeatability, not generation quality |
 | The Medium | Two worlds shown at once, with a moving split between two different images: stresses the confidence mask and edges |
 | Hell is Us | Free VRAM headroom, to measure generation quality |
 | Metro: Last Light Redux | Free VRAM headroom, dark scenes, particles |

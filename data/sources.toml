@@ -42,6 +42,26 @@ games = [
   "Metro: Last Light Redux",
 ]
 
+# Candidates to promote to evaluation_only once a title is picked for a
+# scene series. Reviewed against publisher-review.md; checked on 2026-10-31
+# against ProtonDB, GamingOnLinux and Are We Anti-Cheat Yet (no anti-cheat
+# found, which is not proof). A candidate is not captured until it is moved
+# to evaluation_only and its store page is checked for anti-cheat.
+[evaluation_candidates]
+games = [
+  "Darksiders Warmastered Edition",
+  "Darksiders II Deathinitive Edition",
+  "Darksiders Genesis",
+  "Darksiders III",
+  "Metro 2033 Redux",
+  "Dead Island 2",
+  "Maneater",
+  "Detroit: Become Human",
+  "Heavy Rain",
+  "Beyond: Two Souls",
+  "The Witcher 2: Assassins of Kings Enhanced Edition",
+]
+
 # Existing frame generators: comparison reference only, never a training
 # target.
 [reference_only]

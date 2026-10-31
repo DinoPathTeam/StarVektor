@@ -8,6 +8,7 @@ StarVektor learns from **results and from frames from permitted sources**; it ne
 |---|---|---|
 | Permitted | Our own scenes rendered in an open engine (Godot, Blender); public datasets with an open license; games with explicit permission | Training and evaluation |
 | Evaluation only | Commercial games (Control, Cyberpunk 2077, The Witcher 3 2026 version, Crimson Desert, Skyrim Special Edition, The Medium, Hell is Us, Metro: Last Light Redux) | Compare quality and cost; never train |
+| Evaluation candidate | Single-player titles reviewed in [publisher-review.md](publisher-review.md) and listed under `evaluation_candidates` in `data/sources.toml` | Nothing is captured until the title is promoted to evaluation only |
 | Comparison reference | Output of FSR 3, AFMF 2, DLSS FG and OptiScaler FG | Measure whether StarVektor does better or worse; never as a training target |
 | Forbidden | SDK code or binaries, assets extracted from games, games whose EULA forbids capturing or training, captures made with FG active as input | Never |
 
@@ -25,6 +26,7 @@ A commercial game's EULA is reviewed before capturing it.
 8. No frame from commercial games is stored: the image is processed in memory, discarded, and only numerical metrics are kept.
 9. Test scenes are played by a person, from a saved game or the game's own benchmark mode; no input is automated or injected (Steam Subscriber Agreement §4.C). Games are run unmodified.
 10. Evaluation is limited to single-player, offline games. Status of each publisher in [publisher-review.md](publisher-review.md).
+11. Before a title is promoted from candidate to evaluation only, its store page is checked for anti-cheat and online requirements. Community lists (ProtonDB, GamingOnLinux, Are We Anti-Cheat Yet) are evidence, not proof, and their date is recorded in the publisher review.
 
 ## Automatic verification
 
