@@ -19,13 +19,15 @@ Goal: repository, layers, log schema, data policy and a skeleton TUI backed by a
 
 Goal: measure without generating anything and decide how to hook in on Linux.
 
-- [ ] H1.1 Measurement without generating anything: frame times, rendered vs. presented fps, VRAM.
+- [x] H1.1 Measurement without generating anything: frame times, rendered vs. presented fps, VRAM. Evidence: `starvektor measure` turned mangoapp recordings of The Elder Scrolls V: Skyrim Special Edition (unmodified, played by a person, gamescope capped at 60 fps) into schema-valid logs; MangoHud VRAM matched the amdgpu `sysfs` counter within 0.5 % in a steady scene (3,348 MB mean vs. 3,340 to 3,352 MB read). Rendered and presented fps are identical by construction, since nothing is generated yet.
 - [ ] H1.2 Detection of the OptiScaler configuration (upscaling only, FG, both).
 - [ ] H1.3 Three fixed scenes per evaluation game, played by a person or with the game's own benchmark mode (no input automation), on the unmodified game.
 - [ ] H1.4 Test A: implicit Vulkan layer. Overhead, 1 % and 0.1 % percentiles, latency, available engine data, compatibility and footprint (whether it runs inside the game process and what data it accesses).
 - [ ] H1.5 Test B: gamescope, with the same metrics, including footprint.
 - [ ] H1.6 Decision D2 recorded with the figures that support it.
 - [ ] H1.7 Exclusion list of games with anti-cheat: StarVektor off by default in them (D9).
+
+_Note: H1.1 covers one game on one machine (RX 9060 XT, 8 GB), with the idle-probe VRAM discrepancy between MangoHud and sysfs explained only for a loaded game. The fixed scenes (H1.3) and the hook tests (H1.4, H1.5) are still open._
 
 **Exit:** repeating the same scene gives comparable results (tolerance to be defined from the data) and D2 is decided.
 
