@@ -7,7 +7,7 @@ StarVektor learns from **results and from frames from permitted sources**; it ne
 | Category | What goes in | Use |
 |---|---|---|
 | Permitted | Our own scenes rendered in an open engine (Godot, Blender); public datasets with an open license; games with explicit permission | Training and evaluation |
-| Evaluation only | Commercial games (Control, Cyberpunk 2077, The Witcher 3 2026 version, Crimson Desert, Skyrim Special Edition, The Medium, Hell is Us, Metro: Last Light Redux, Metro 2033 Redux) | Compare quality and cost; never train |
+| Evaluation only | Commercial games (Control, Cyberpunk 2077, The Witcher 3 2026 version, Crimson Desert, Skyrim Special Edition, The Medium, Hell is Us, Metro: Last Light Redux, Metro 2033 Redux, Euro Truck Simulator 2) | Compare quality and cost; never train |
 | Evaluation candidate | Single-player titles reviewed in [publisher-review.md](publisher-review.md) and listed under `evaluation_candidates` in `data/sources.toml` | Nothing is captured until the title is promoted to evaluation only |
 | Comparison reference | Output of FSR 3, AFMF 2, DLSS FG and OptiScaler FG | Measure whether StarVektor does better or worse; never as a training target |
 | Forbidden | SDK code or binaries, assets extracted from games, games whose EULA forbids capturing or training, captures made with FG active as input | Never |

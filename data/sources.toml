@@ -41,6 +41,7 @@ games = [
   "Hell is Us",
   "Metro: Last Light Redux",
   "Metro 2033 Redux",
+  "Euro Truck Simulator 2",
 ]
 
 # Candidates to promote to evaluation_only once a title is picked for a
@@ -61,7 +62,6 @@ games = [
   "Beyond: Two Souls",
   "The Witcher 2: Assassins of Kings Enhanced Edition",
   "Resident Evil 4 (2023 remake)",
-  "Euro Truck Simulator 2",
 ]
 
 # Existing frame generators: comparison reference only, never a training

@@ -70,6 +70,7 @@ Three fixed scenes per game (exploration, combat with particles, changing lighti
 | Hell is Us | Free VRAM headroom, to measure generation quality |
 | Metro: Last Light Redux | Free VRAM headroom, dark scenes, particles |
 | Metro 2033 Redux | Dark corridors, fog and particles; chosen as the first game that loads the GPU for the Phase 1 measurements |
+| Euro Truck Simulator 2 | Long driving trips with traffic that never repeats, changing light and weather; in the pilot the GPU was only about 44 % loaded, so the frame time is decided by the CPU and the engine |
 
 Control is expected to run with very little free VRAM on an 8 GB card, so it is used with high textures (to check the safe switch-off) and with reduced textures (to leave room for levels 1 to 3); this is an expectation to be confirmed by measurement. For the older-hardware phase, more single-player games will be added. Competitive online games are out of scope (D9); StarVektor stays off in them.
 
